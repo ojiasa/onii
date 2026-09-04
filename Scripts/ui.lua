@@ -31,15 +31,17 @@ local Config = {
     BackgroundImageId = "rbxassetid://116222439691339"
 }
 
--- Hàm hỗ trợ nạp module an toàn
+-- Hàm hỗ trợ nạp module an toàn + VERBOSE LOGGING
 local function safeLoad(url)
+    print("[Shadow Glade] Đang nạp: " .. url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
     if success and result then
+        print("[Shadow Glade] ✓ Thành công: " .. url)
         return result
     else
-        warn("[Shadow Glade] Lỗi nạp module từ URL: " .. tostring(url))
+        warn("[Shadow Glade] ✗ LỖI nạp: " .. url)
         return nil
     end
 end
@@ -52,10 +54,43 @@ local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
 local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
 
--- Hàm hiển thị thông báo trực tiếp (Chống trùng lặp 100%)
+-- Dummy module nếu load thất bại
+local function createDummyTab(name)
+    return {
+        Create = function(parentFrame)
+            local frame = Instance.new("Frame", parentFrame)
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundTransparency = 1
+            
+            local label = Instance.new("TextLabel", frame)
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.Text = "Module '" .. name .. "' chưa được tải\n\nKiểm tra kết nối mạng hoặc GitHub URL"
+            label.Font = Enum.Font.Gotham
+            label.TextSize = 14
+            label.TextColor3 = Color3.fromRGB(255, 100, 100)
+            label.BackgroundTransparency = 1
+            label.TextWrapped = true
+            
+            return frame
+        end
+    }
+end
+
+-- Fallback nếu module nil
+MenuTabModule = MenuTabModule or createDummyTab("Menu")
+KaitunTabModule = KaitunTabModule or createDummyTab("Kaitun")
+HopTabModule = HopTabModule or createDummyTab("Hop")
+OtherGamesTabModule = OtherGamesTabModule or createDummyTab("Other Games")
+OtherTabModule = OtherTabModule or createDummyTab("Setting")
+StatusTabModule = StatusTabModule or createDummyTab("Status")
+
+-- Hàm hiển thị thông báo trực tiếp
 local function showNotification(titleText, messageText, duration, iconId)
     local gui = TargetParent:FindFirstChild("NanaHubUI")
-    if not gui then return end
+    if not gui then 
+        warn("[Shadow Glade] GUI không tìm thấy, không thể hiển thị notification")
+        return 
+    end
 
     -- Container chứa thông báo
     local container = gui:FindFirstChild("NotifContainer")
@@ -129,10 +164,12 @@ local function showNotification(titleText, messageText, duration, iconId)
 end
 
 function UI.Init()
+    print("[Shadow Glade] Đang khởi tạo UI...")
+    
     -- Không tạo UI thứ hai nếu NanaHubUI đã tồn tại
-    -- Cách này không phụ thuộc getgenv/executor API.
     local existingGui = TargetParent:FindFirstChild("NanaHubUI")
     if existingGui then
+        print("[Shadow Glade] UI đã tồn tại, sử dụng UI cũ")
         UI.Gui = existingGui
         return
     end
@@ -148,6 +185,8 @@ function UI.Init()
     gui.Parent = TargetParent
     gui.ResetOnSpawn = false
     UI.Gui = gui
+    
+    print("[Shadow Glade] ScreenGui được tạo thành công")
 
     -- 1. NÚT ICON TRÒN MỞ/TẮT UI
     local openBtn = Instance.new("ImageButton", gui)
@@ -302,13 +341,18 @@ function UI.Init()
 
     local function switchTab(tabModule)
         if currentTab and typeof(currentTab) == "Instance" then
-            currentTab:Destroy()
+            pcall(function()
+                currentTab:Destroy()
+            end)
         end
         for _, child in ipairs(contentFrame:GetChildren()) do
             if child:IsA("GuiObject") then
-                child:Destroy()
+                pcall(function()
+                    child:Destroy()
+                end)
             end
         end
+        
         if tabModule and tabModule.Create then
             pcall(function()
                 currentTab = tabModule.Create(contentFrame)
@@ -374,11 +418,12 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Thông báo khởi động: chỉ tạo đúng 1 lần cho GUI này
+    -- Thông báo khởi động
     task.defer(function()
         if gui and gui.Parent and not gui:GetAttribute("StartupNotificationShown") then
             gui:SetAttribute("StartupNotificationShown", true)
-
+            
+            print("[Shadow Glade] Showing startup notification")
             showNotification(
                 "ＳＨＡＤＯＷ ＧＬＡＤＥ",
                 "Giao diện đã tải thành công!",
@@ -387,6 +432,9 @@ function UI.Init()
             )
         end
     end)
+    
+    print("[Shadow Glade] UI init hoàn tất!")
+end
 
 UI.Init()
 return UI
