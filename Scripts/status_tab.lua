@@ -143,7 +143,7 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- Cập nhật Giờ (Chạy riêng 1 giây/lần để chống giật/đứng)
+    -- Cập nhật Giờ (Chạy 1 giây/lần)
     task.spawn(function()
         while frame:IsDescendantOf(game) do
             timeLabel.Text = os.date("%H:%M:%S")
@@ -151,7 +151,7 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- Cập nhật FPS (Sử dụng API chuẩn của Roblox workspace)
+    -- Cập nhật FPS mượt bằng API chính thức của Roblox
     local renderConnection
     renderConnection = RunService.RenderStepped:Connect(function()
         if not frame:IsDescendantOf(game) then
