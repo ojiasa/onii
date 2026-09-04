@@ -5,7 +5,7 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Tìm Parent phù hợp cho GUI (CoreGui nếu có quyền, nếu không sẽ dùng PlayerGui)
+-- Tìm Parent phù hợp cho GUI
 local function getGuiParent()
     local success, _ = pcall(function()
         local test = Instance.new("Folder")
@@ -51,12 +51,22 @@ local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
 local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
 
--- Hàm hiển thị thông báo trực tiếp (Độc lập & Chống lỗi 100%)
+-- Biến chặn chống gọi thông báo trùng lặp trong thời gian ngắn
+local lastNotifTime = 0
+
+-- Hàm hiển thị thông báo trực tiếp (Chống trùng lặp 100%)
 local function showNotification(titleText, messageText, duration, iconId)
+    local currentTime = os.clock()
+    -- Nếu thông báo vừa gọi chưa quá 0.5s thì bỏ qua thông báo bị lặp
+    if currentTime - lastNotifTime < 0.5 then
+        return
+    end
+    lastNotifTime = currentTime
+
     local gui = TargetParent:FindFirstChild("NanaHubUI")
     if not gui then return end
 
-    -- Container chứa thông báo (Tự động sắp xếp nếu có nhiều thông báo)
+    -- Container chứa thông báo
     local container = gui:FindFirstChild("NotifContainer")
     if not container then
         container = Instance.new("Frame", gui)
@@ -66,6 +76,13 @@ local function showNotification(titleText, messageText, duration, iconId)
         container.BackgroundTransparency = 1
         container.ZIndex = 9999
 
+        local layout = Instance.new("UIListLayout", container)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        layout.Padding = UDim.new(0, 8)
+    else
+        -- Xóa thông báo cũ đang hiển thị để tránh bị chồng đống 2 cái giống nhau
+        container:ClearAllChildren()
         local layout = Instance.new("UIListLayout", container)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
@@ -365,10 +382,8 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Bật thông báo
-    task.defer(function()
-        showNotification("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 4, Config.IconImageId)
-    end)
+    -- Hiển thị thông báo
+    showNotification("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
 end
 
 UI.Init()
