@@ -4,14 +4,14 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- URL Repository GitHub của bạn (emzymodios/anini)
-local BASE_URL = "https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/"
+-- URL Repository GitHub chuẩn của bạn (ojiasa/onii)
+local BASE_URL = "https://raw.githubusercontent.com/ojiasa/onii/refs/heads/main/Scripts/"
 
 -- 1. CẤU HÌNH HÌNH ẢNH
 local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" 
 local LOGO_IMAGE_ID       = "rbxassetid://10967390919" 
 
--- Hàm hỗ trợ nạp module an toàn chống crash GUI
+-- Hàm hỗ trợ nạp module an toàn chống crash GUI nếu chập chờn mạng
 local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
@@ -175,10 +175,10 @@ function UI.Init()
             activeTabBtn = tabBtn
             activeTabFrame = tabContainer
 
-            -- GỌI THÔNG BÁO KHI CHUYỂN TAB
+            -- GỬI THÔNG BÁO KHI CHUYỂN TAB
             if NotificationModule and NotificationModule.Notify then
                 pcall(function()
-                    NotificationModule.Notify("Anini Hub", "Đã chuyển sang Tab: " .. tabData.name, 2)
+                    NotificationModule.Notify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Đã chuyển sang Tab: " .. tabData.name, 2)
                 end)
             end
         end)
@@ -192,10 +192,10 @@ function UI.Init()
         end
     end
 
-    -- Hiển thị thông báo Nạp UI thành công ngay khi mở Hub
+    -- THÔNG BÁO KHỞI TẠO HUB THÀNH CÔNG
     if NotificationModule and NotificationModule.Notify then
         pcall(function()
-            NotificationModule.Notify("Anini Hub", "Giao diện đã tải thành công!", 4)
+            NotificationModule.Notify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "loaded successful!", 4)
         end)
     end
 end
