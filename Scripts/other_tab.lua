@@ -147,8 +147,8 @@ function OtherTab.Create(parentFrame)
         end
     end)
 
-    -- 2. Thanh Kéo Tốc Độ (Slider từ 16 đến 300)
-    createSlider("Speed Value", 16, 300, CurrentSpeed, function(value)
+    -- 2. Thanh Kéo Tốc Độ (Đã đổi Max = 500)
+    createSlider("Speed Value", 16, 500, CurrentSpeed, function(value)
         CurrentSpeed = value
     end)
 
