@@ -382,9 +382,21 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Hiển thị thông báo
-    showNotification("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
-end
+   -- Bật thông báo, chống gọi trùng
+if not gui:GetAttribute("NotificationShown") then
+    gui:SetAttribute("NotificationShown", true)
 
+    task.defer(function()
+        if gui and gui.Parent then
+            showNotification(
+                "ＳＨＡＤＯＷ ＧＬＡＤＥ",
+                "Giao diện đã tải thành công!",
+                4,
+                Config.IconImageId
+            )
+        end
+    end)
+end
+    
 UI.Init()
 return UI
