@@ -5,29 +5,29 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- URL Repository GitHub chuẩn của bạn (ojiasa/onii)
+-- URL Repository GitHub chuẩn
 local BASE_URL = "https://raw.githubusercontent.com/ojiasa/onii/refs/heads/main/Scripts/"
 
--- Cấu hình hình ảnh UI
+-- Cấu hình hình ảnh UI chuẩn Roblox Asset ID
 local Config = {
     IconImageId = "rbxassetid://86285862396979",
-    BackgroundImageId = "http://www.roblox.com/asset/?id=116222439691339"
+    BackgroundImageId = "rbxassetid://116222439691339"
 }
 
--- Hàm hỗ trợ nạp module an toàn chống crash GUI nếu chập chờn mạng
+-- Hàm hỗ trợ nạp module an toàn
 local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
-    if success and (type(result) == "table" or type(result) == "userdata") then
+    if success and (type(result) == "table" or type(result) == "userdata" or type(result) == "function") then
         return result
     else
         warn("[Shadow Glade] Lỗi nạp module từ URL: " .. tostring(url))
-        return { Create = function(parent) end, Show = function() end, Notify = function() end }
+        return { Create = function(parent) end, Show = function() end }
     end
 end
 
--- Nạp các module từ GitHub repo ojiasa/onii
+-- Nạp các module từ GitHub
 local NotificationModule  = safeLoad(BASE_URL .. "notification.lua")
 local MenuTabModule       = safeLoad(BASE_URL .. "menu_tab.lua")
 local KaitunTabModule     = safeLoad(BASE_URL .. "kaitun_tab.lua")
@@ -43,13 +43,13 @@ function UI.Init()
         oldGui:Destroy()
     end
 
-    -- Tạo ScreenGui chính gắn vào CoreGui để bảo mật & không mất khi chết
+    -- Tạo ScreenGui chính
     local gui = Instance.new("ScreenGui")
     gui.Name = "NanaHubUI"
     gui.Parent = CoreGui
     gui.ResetOnSpawn = false
 
-    -- 1. Nút Icon tròn mở/tắt UI
+    -- 1. NÚT ICON TRÒN MỞ/TẮT UI (Được đặt ZIndex = 100 để luôn nằm ở lớp trên cùng)
     local openBtn = Instance.new("ImageButton", gui)
     openBtn.Name = "OpenButton"
     openBtn.Size = UDim2.new(0, 50, 0, 50)
@@ -60,6 +60,7 @@ function UI.Init()
     openBtn.BorderSizePixel = 0
     openBtn.Active = true
     openBtn.Draggable = true
+    openBtn.ZIndex = 100
 
     local btnCorner = Instance.new("UICorner", openBtn)
     btnCorner.CornerRadius = UDim.new(0, 25)
@@ -80,6 +81,7 @@ function UI.Init()
     frame.Visible = false
     frame.Active = true
     frame.Draggable = true
+    frame.ZIndex = 1
 
     local frameCorner = Instance.new("UICorner", frame)
     frameCorner.CornerRadius = UDim.new(0, 12)
@@ -156,7 +158,7 @@ function UI.Init()
     contentFrame.BackgroundTransparency = 1
     contentFrame.ZIndex = 2
 
-    -- Nút Kéo Giãn GUI ở góc dưới bên phải
+    -- Nút Kéo Giãn GUI
     local resizeBtn = Instance.new("TextButton", frame)
     resizeBtn.Name = "ResizeButton"
     resizeBtn.Size = UDim2.new(0, 25, 0, 25)
@@ -214,7 +216,7 @@ function UI.Init()
         end
     end
 
-    -- Đầy đủ danh sách các Tab từ Repo
+    -- Danh sách Tab
     local tabsData = {
         { Name = "Menu", Module = MenuTabModule },
         { Name = "Kaitun", Module = KaitunTabModule },
@@ -225,7 +227,7 @@ function UI.Init()
     }
 
     local activeBtn = nil
-    for _, tab in ipairs(tabsData) do
+    for idx, tab in ipairs(tabsData) do
         local btn = Instance.new("TextButton", tabsScroll)
         btn.Size = UDim2.new(1, 0, 0, 34)
         btn.Text = tab.Name
@@ -256,8 +258,15 @@ function UI.Init()
 
             switchTab(tab.Module)
         end)
+
+        if idx == 1 then
+            btn.BackgroundColor3 = Color3.fromRGB(0, 160, 220)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            activeBtn = btn
+        end
     end
 
+    -- Bật / Tắt Menu khi bấm nút Icon tròn
     openBtn.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
     end)
@@ -265,13 +274,14 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Gọi Notification thông báo tải thành công
-    local showNotify = NotificationModule.Show or NotificationModule.Notify
-    if showNotify then
-        pcall(function()
-            showNotify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
-        end)
-    end
+    -- Gọi Notification thông báo
+    pcall(function()
+        if type(NotificationModule) == "table" and NotificationModule.Show then
+            NotificationModule.Show("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
+        elseif type(NotificationModule) == "function" then
+            NotificationModule("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
+        end
+    end)
 end
 
 UI.Init()
