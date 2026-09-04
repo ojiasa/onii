@@ -3,7 +3,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 -- Import Module Notification
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/notification.lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/ojiasa/onii/main/Scripts/notification.lua"))()
 
 local Config = {
     IconImageId = "rbxassetid://86285862396979",
@@ -11,10 +11,10 @@ local Config = {
 }
 
 -- Đường dẫn các tab (Thêm StatusTab vào đây)
-local MenuTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/menu_tab.lua"))()
-local HopTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/hop_tab.lua"))()
-local OtherTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/other_tab.lua"))()
-local StatusTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/status_tab.lua"))()
+local MenuTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/ojiasa/onii/main/Scripts/menu_tab.lua"))()
+local HopTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/ojiasa/onii/main/Scripts/hop_tab.lua"))()
+local OtherTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/ojiasa/onii/main/Scripts/other_tab.lua"))()
+local StatusTab = loadstring(game:HttpGet("https://raw.githubusercontent.com/ojiasa/onii/main/Scripts/status_tab.lua"))()
 
 function UI.Init()
     local guiParent = Players.LocalPlayer:WaitForChild("PlayerGui")
