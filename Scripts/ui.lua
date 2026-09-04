@@ -4,20 +4,30 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- URL Repository GitHub của bạn (emzymodios/anini)
-local BASE_URL = "https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/"
-
 -- 1. CẤU HÌNH HÌNH ẢNH (Thay ID ảnh Roblox của bạn vào đây)
 local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" -- ID ảnh nền Menu
 local LOGO_IMAGE_ID       = "rbxassetid://10967390919" -- ID ảnh Logo Anini Hub
 
--- 2. Load các Module Tab từ GitHub
-local MainTabModule       = loadstring(game:HttpGet(BASE_URL .. "menu_tab.lua"))()
-local KaitunTabModule     = loadstring(game:HttpGet(BASE_URL .. "kaitun_tab.lua"))()
-local HopTabModule        = loadstring(game:HttpGet(BASE_URL .. "hop_tab.lua"))()
-local OtherGamesTabModule = loadstring(game:HttpGet(BASE_URL .. "other_games_tab.lua"))()
-local SettingTabModule    = loadstring(game:HttpGet(BASE_URL .. "other_tab.lua"))()
-local StatusTabModule     = loadstring(game:HttpGet(BASE_URL .. "status_tab.lua"))()
+-- Hàm nạp script an toàn chống lỗi Stack Trace / Crash GUI
+local function safeLoad(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if success and type(result) == "table" then
+        return result
+    else
+        warn("[Anini Hub] Không thể tải module từ URL: " .. tostring(url))
+        return { Create = function(parent) end } -- Return module rỗng để UI không bị sập
+    end
+end
+
+-- 2. LOAD TRỰC TIẾP CÁC MODULE TAB TỪ LINK RAW GITHUB (Không dùng BASE_URL)
+local MainTabModule       = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/menu_tab.lua")
+local KaitunTabModule     = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/kaitun_tab.lua")
+local HopTabModule        = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/hop_tab.lua")
+local OtherGamesTabModule = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/other_games_tab.lua")
+local SettingTabModule    = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/other_tab.lua")
+local StatusTabModule     = safeLoad("https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/status_tab.lua")
 
 function UI.Init()
     -- Xóa GUI cũ nếu đã tồn tại
@@ -49,20 +59,18 @@ function UI.Init()
     mainStroke.Color = Color3.fromRGB(0, 180, 255)
     mainStroke.Thickness = 1.5
 
-    -- ========================================================
-    -- 1. HÌNH NỀN MENU (BACKGROUND IMAGE)
-    -- ========================================================
+    -- Background Image (Ảnh nền Menu)
     local bgImage = Instance.new("ImageLabel", mainFrame)
     bgImage.Name = "BackgroundImage"
     bgImage.Size = UDim2.new(1, 0, 1, 0)
     bgImage.Position = UDim2.new(0, 0, 0, 0)
     bgImage.Image = BACKGROUND_IMAGE_ID
-    bgImage.ImageTransparency = 0.85 -- Độ trong suốt của ảnh nền (chỉnh từ 0 đến 1)
+    bgImage.ImageTransparency = 0.85
     bgImage.ScaleType = Enum.ScaleType.Crop
     bgImage.BackgroundTransparency = 1
     bgImage.ZIndex = 1
 
-    -- Sidebar chứa danh sách nút Tab (Bên trái)
+    -- Sidebar (Bên trái)
     local sidebar = Instance.new("Frame", mainFrame)
     sidebar.Size = UDim2.new(0, 145, 1, -20)
     sidebar.Position = UDim2.new(0, 10, 0, 10)
@@ -74,9 +82,7 @@ function UI.Init()
     local sidebarCorner = Instance.new("UICorner", sidebar)
     sidebarCorner.CornerRadius = UDim.new(0, 8)
 
-    -- ========================================================
-    -- 2. LOGO ANINI HUB TRÊN CÙNG SIDEBAR (LOGO IMAGE)
-    -- ========================================================
+    -- Logo Anini Hub trên Sidebar
     local logoImage = Instance.new("ImageLabel", sidebar)
     logoImage.Name = "LogoImage"
     logoImage.Size = UDim2.new(0, 42, 0, 42)
@@ -89,7 +95,7 @@ function UI.Init()
     local logoCorner = Instance.new("UICorner", logoImage)
     logoCorner.CornerRadius = UDim.new(0, 8)
 
-    -- Khung chứa danh sách nút Tab (Đặt dưới Logo)
+    -- Khung chứa danh sách Nút Tab
     local navFrame = Instance.new("Frame", sidebar)
     navFrame.Size = UDim2.new(1, -12, 1, -58)
     navFrame.Position = UDim2.new(0, 6, 0, 54)
@@ -107,7 +113,7 @@ function UI.Init()
     contentFrame.BackgroundTransparency = 1
     contentFrame.ZIndex = 2
 
-    -- BẢNG CẤU HÌNH 6 TAB
+    -- BẢNG CẤU HÌNH 6 TAB ĐÚNG THỨ TỰ: Main -> Kaitun -> Hop -> Other Games -> Setting -> Status
     local tabsConfig = {
         { name = "Main",        module = MainTabModule },
         { name = "Kaitun",      module = KaitunTabModule },
@@ -128,7 +134,9 @@ function UI.Init()
         tabContainer.Visible = false
 
         if tabData.module and tabData.module.Create then
-            tabData.module.Create(tabContainer)
+            pcall(function()
+                tabData.module.Create(tabContainer)
+            end)
         end
 
         local tabBtn = Instance.new("TextButton", navFrame)
