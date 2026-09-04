@@ -9,7 +9,7 @@ local Scripts = {
         end 
     },
     { 
-        name = "NIGHT HUB", 
+        name = "NIGHT HUB (down)", 
         url = "https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/HopScript.luau" 
     }
 }
