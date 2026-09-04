@@ -7,11 +7,11 @@ local LocalPlayer = Players.LocalPlayer
 -- URL Repository GitHub của bạn (emzymodios/anini)
 local BASE_URL = "https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/"
 
--- 1. CẤU HÌNH HÌNH ẢNH (Thay ID ảnh Roblox của bạn vào đây)
-local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" -- ID ảnh nền Menu
-local LOGO_IMAGE_ID       = "rbxassetid://10967390919" -- ID ảnh Logo Anini Hub
+-- 1. CẤU HÌNH HÌNH ẢNH
+local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" 
+local LOGO_IMAGE_ID       = "rbxassetid://10967390919" 
 
--- Hàm hỗ trợ nạp module an toàn chống crash GUI khi bị lỗi mạng/file
+-- Hàm hỗ trợ nạp module an toàn chống crash GUI
 local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
@@ -20,11 +20,12 @@ local function safeLoad(url)
         return result
     else
         warn("[Anini Hub] Lỗi nạp module từ URL: " .. tostring(url))
-        return { Create = function(parent) end }
+        return { Create = function(parent) end, Notify = function() end }
     end
 end
 
--- 2. Load các Module Tab từ GitHub
+-- 2. LOAD CÁC MODULE TAB VÀ NOTIFICATION TỪ GITHUB
+local NotificationModule  = safeLoad(BASE_URL .. "notification.lua")
 local MainTabModule       = safeLoad(BASE_URL .. "menu_tab.lua")
 local KaitunTabModule     = safeLoad(BASE_URL .. "kaitun_tab.lua")
 local HopTabModule        = safeLoad(BASE_URL .. "hop_tab.lua")
@@ -62,20 +63,18 @@ function UI.Init()
     mainStroke.Color = Color3.fromRGB(0, 180, 255)
     mainStroke.Thickness = 1.5
 
-    -- ========================================================
-    -- 1. HÌNH NỀN MENU (BACKGROUND IMAGE)
-    -- ========================================================
+    -- Background Image (Ảnh nền Menu)
     local bgImage = Instance.new("ImageLabel", mainFrame)
     bgImage.Name = "BackgroundImage"
     bgImage.Size = UDim2.new(1, 0, 1, 0)
     bgImage.Position = UDim2.new(0, 0, 0, 0)
     bgImage.Image = BACKGROUND_IMAGE_ID
-    bgImage.ImageTransparency = 0.85 -- Độ trong suốt của ảnh nền (chỉnh từ 0 đến 1)
+    bgImage.ImageTransparency = 0.85
     bgImage.ScaleType = Enum.ScaleType.Crop
     bgImage.BackgroundTransparency = 1
     bgImage.ZIndex = 1
 
-    -- Sidebar chứa danh sách nút Tab (Bên trái)
+    -- Sidebar (Bên trái)
     local sidebar = Instance.new("Frame", mainFrame)
     sidebar.Size = UDim2.new(0, 145, 1, -20)
     sidebar.Position = UDim2.new(0, 10, 0, 10)
@@ -87,9 +86,7 @@ function UI.Init()
     local sidebarCorner = Instance.new("UICorner", sidebar)
     sidebarCorner.CornerRadius = UDim.new(0, 8)
 
-    -- ========================================================
-    -- 2. LOGO ANINI HUB TRÊN CÙNG SIDEBAR (LOGO IMAGE)
-    -- ========================================================
+    -- Logo Anini Hub trên Sidebar
     local logoImage = Instance.new("ImageLabel", sidebar)
     logoImage.Name = "LogoImage"
     logoImage.Size = UDim2.new(0, 42, 0, 42)
@@ -102,7 +99,7 @@ function UI.Init()
     local logoCorner = Instance.new("UICorner", logoImage)
     logoCorner.CornerRadius = UDim.new(0, 8)
 
-    -- Khung chứa danh sách nút Tab (Đặt dưới Logo)
+    -- Khung chứa danh sách Nút Tab
     local navFrame = Instance.new("Frame", sidebar)
     navFrame.Size = UDim2.new(1, -12, 1, -58)
     navFrame.Position = UDim2.new(0, 6, 0, 54)
@@ -120,7 +117,7 @@ function UI.Init()
     contentFrame.BackgroundTransparency = 1
     contentFrame.ZIndex = 2
 
-    -- BẢNG CẤU HÌNH 6 TAB
+    -- BẢNG CẤU HÌNH TAB
     local tabsConfig = {
         { name = "Main",        module = MainTabModule },
         { name = "Kaitun",      module = KaitunTabModule },
@@ -177,6 +174,13 @@ function UI.Init()
 
             activeTabBtn = tabBtn
             activeTabFrame = tabContainer
+
+            -- GỌI THÔNG BÁO KHI CHUYỂN TAB
+            if NotificationModule and NotificationModule.Notify then
+                pcall(function()
+                    NotificationModule.Notify("Anini Hub", "Đã chuyển sang Tab: " .. tabData.name, 2)
+                end)
+            end
         end)
 
         if index == 1 then
@@ -186,6 +190,13 @@ function UI.Init()
             activeTabBtn = tabBtn
             activeTabFrame = tabContainer
         end
+    end
+
+    -- Hiển thị thông báo Nạp UI thành công ngay khi mở Hub
+    if NotificationModule and NotificationModule.Notify then
+        pcall(function()
+            NotificationModule.Notify("Anini Hub", "Giao diện đã tải thành công!", 4)
+        end)
     end
 end
 
