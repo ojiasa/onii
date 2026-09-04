@@ -1,5 +1,6 @@
 local UI = {}
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
@@ -7,195 +8,268 @@ local LocalPlayer = Players.LocalPlayer
 -- URL Repository GitHub chuẩn của bạn (ojiasa/onii)
 local BASE_URL = "https://raw.githubusercontent.com/ojiasa/onii/refs/heads/main/Scripts/"
 
--- 1. CẤU HÌNH HÌNH ẢNH
-local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" 
-local LOGO_IMAGE_ID       = "rbxassetid://10967390919" 
+-- Cấu hình hình ảnh UI
+local Config = {
+    IconImageId = "rbxassetid://86285862396979",
+    BackgroundImageId = "http://www.roblox.com/asset/?id=116222439691339"
+}
 
 -- Hàm hỗ trợ nạp module an toàn chống crash GUI nếu chập chờn mạng
 local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
-    if success and type(result) == "table" then
+    if success and (type(result) == "table" or type(result) == "userdata") then
         return result
     else
-        warn("[Anini Hub] Lỗi nạp module từ URL: " .. tostring(url))
-        return { Create = function(parent) end, Notify = function() end }
+        warn("[Shadow Glade] Lỗi nạp module từ URL: " .. tostring(url))
+        return { Create = function(parent) end, Show = function() end, Notify = function() end }
     end
 end
 
--- 2. LOAD CÁC MODULE TAB VÀ NOTIFICATION TỪ GITHUB
+-- Nạp các module từ GitHub repo ojiasa/onii
 local NotificationModule  = safeLoad(BASE_URL .. "notification.lua")
-local MainTabModule       = safeLoad(BASE_URL .. "menu_tab.lua")
+local MenuTabModule       = safeLoad(BASE_URL .. "menu_tab.lua")
 local KaitunTabModule     = safeLoad(BASE_URL .. "kaitun_tab.lua")
 local HopTabModule        = safeLoad(BASE_URL .. "hop_tab.lua")
 local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
-local SettingTabModule    = safeLoad(BASE_URL .. "other_tab.lua")
+local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
 
 function UI.Init()
     -- Xóa GUI cũ nếu đã tồn tại
-    if CoreGui:FindFirstChild("AniniHubGui") then
-        CoreGui.AniniHubGui:Destroy()
+    local oldGui = CoreGui:FindFirstChild("NanaHubUI") or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("NanaHubUI")
+    if oldGui then
+        oldGui:Destroy()
     end
 
-    -- Tạo ScreenGui chính
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "AniniHubGui"
-    screenGui.Parent = CoreGui
-    screenGui.ResetOnSpawn = false
+    -- Tạo ScreenGui chính gắn vào CoreGui để bảo mật & không mất khi chết
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NanaHubUI"
+    gui.Parent = CoreGui
+    gui.ResetOnSpawn = false
 
-    -- Khung Menu Chính
-    local mainFrame = Instance.new("Frame", screenGui)
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 560, 0, 360)
-    mainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Active = true
-    mainFrame.Draggable = true
-    mainFrame.ClipsDescendants = true
+    -- 1. Nút Icon tròn mở/tắt UI
+    local openBtn = Instance.new("ImageButton", gui)
+    openBtn.Name = "OpenButton"
+    openBtn.Size = UDim2.new(0, 50, 0, 50)
+    openBtn.Position = UDim2.new(0, 20, 0.5, -25)
+    openBtn.Image = Config.IconImageId
+    openBtn.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
+    openBtn.BackgroundTransparency = 0.2
+    openBtn.BorderSizePixel = 0
+    openBtn.Active = true
+    openBtn.Draggable = true
 
-    local mainCorner = Instance.new("UICorner", mainFrame)
-    mainCorner.CornerRadius = UDim.new(0, 10)
+    local btnCorner = Instance.new("UICorner", openBtn)
+    btnCorner.CornerRadius = UDim.new(0, 25)
 
-    local mainStroke = Instance.new("UIStroke", mainFrame)
-    mainStroke.Color = Color3.fromRGB(0, 180, 255)
-    mainStroke.Thickness = 1.5
+    local btnStroke = Instance.new("UIStroke", openBtn)
+    btnStroke.Color = Color3.fromRGB(0, 255, 220)
+    btnStroke.Thickness = 2.5
 
-    -- Background Image (Ảnh nền Menu)
-    local bgImage = Instance.new("ImageLabel", mainFrame)
-    bgImage.Name = "BackgroundImage"
-    bgImage.Size = UDim2.new(1, 0, 1, 0)
-    bgImage.Position = UDim2.new(0, 0, 0, 0)
-    bgImage.Image = BACKGROUND_IMAGE_ID
-    bgImage.ImageTransparency = 0.85
-    bgImage.ScaleType = Enum.ScaleType.Crop
-    bgImage.BackgroundTransparency = 1
-    bgImage.ZIndex = 1
+    -- 2. Khung giao diện chính
+    local frame = Instance.new("Frame", gui)
+    frame.Name = "MainFrame"
+    frame.Size = UDim2.new(0, 580, 0, 380)
+    frame.Position = UDim2.new(0.5, -290, 0.5, -190)
+    frame.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+    frame.BackgroundTransparency = 0.65
+    frame.BorderSizePixel = 0
+    frame.ClipsDescendants = true
+    frame.Visible = false
+    frame.Active = true
+    frame.Draggable = true
 
-    -- Sidebar (Bên trái)
-    local sidebar = Instance.new("Frame", mainFrame)
-    sidebar.Size = UDim2.new(0, 145, 1, -20)
-    sidebar.Position = UDim2.new(0, 10, 0, 10)
-    sidebar.BackgroundColor3 = Color3.fromRGB(22, 29, 40)
-    sidebar.BackgroundTransparency = 0.2
-    sidebar.BorderSizePixel = 0
-    sidebar.ZIndex = 2
+    local frameCorner = Instance.new("UICorner", frame)
+    frameCorner.CornerRadius = UDim.new(0, 12)
 
-    local sidebarCorner = Instance.new("UICorner", sidebar)
-    sidebarCorner.CornerRadius = UDim.new(0, 8)
+    local frameStroke = Instance.new("UIStroke", frame)
+    frameStroke.Color = Color3.fromRGB(0, 220, 255)
+    frameStroke.Thickness = 1.8
 
-    -- Logo Anini Hub trên Sidebar
-    local logoImage = Instance.new("ImageLabel", sidebar)
-    logoImage.Name = "LogoImage"
-    logoImage.Size = UDim2.new(0, 42, 0, 42)
-    logoImage.Position = UDim2.new(0.5, -21, 0, 8)
-    logoImage.Image = LOGO_IMAGE_ID
-    logoImage.BackgroundTransparency = 1
-    logoImage.ScaleType = Enum.ScaleType.Fit
-    logoImage.ZIndex = 3
+    -- 3. Ảnh nền Menu
+    local panelBackground = Instance.new("ImageLabel", frame)
+    panelBackground.Name = "PanelBackground"
+    panelBackground.Size = UDim2.new(1, 0, 1, 0)
+    panelBackground.Position = UDim2.new(0, 0, 0, 0)
+    panelBackground.BackgroundTransparency = 1
+    panelBackground.BorderSizePixel = 0
+    panelBackground.ScaleType = Enum.ScaleType.Crop
+    panelBackground.ZIndex = 1
+    panelBackground.Image = Config.BackgroundImageId
+    panelBackground.ImageTransparency = 0.35
 
-    local logoCorner = Instance.new("UICorner", logoImage)
-    logoCorner.CornerRadius = UDim.new(0, 8)
+    local panelBgCorner = Instance.new("UICorner", panelBackground)
+    panelBgCorner.CornerRadius = UDim.new(0, 12)
 
-    -- Khung chứa danh sách Nút Tab
-    local navFrame = Instance.new("Frame", sidebar)
-    navFrame.Size = UDim2.new(1, -12, 1, -58)
-    navFrame.Position = UDim2.new(0, 6, 0, 54)
-    navFrame.BackgroundTransparency = 1
-    navFrame.ZIndex = 3
+    -- Tiêu đề Menu
+    local titleLabel = Instance.new("TextLabel", frame)
+    titleLabel.Size = UDim2.new(1, -20, 0, 35)
+    titleLabel.Position = UDim2.new(0, 15, 0, 5)
+    titleLabel.Text = "ＳＨＡＤＯＷ ＧＬＡＤＥ HUB"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 15
+    titleLabel.TextColor3 = Color3.fromRGB(0, 255, 230)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.ZIndex = 2
 
-    local sidebarLayout = Instance.new("UIListLayout", navFrame)
-    sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    sidebarLayout.Padding = UDim.new(0, 5)
+    -- Sidebar chứa danh sách Tab
+    local tabsFrame = Instance.new("Frame", frame)
+    tabsFrame.Position = UDim2.new(0, 12, 0, 45)
+    tabsFrame.Size = UDim2.new(0, 130, 1, -57)
+    tabsFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
+    tabsFrame.BackgroundTransparency = 0.5
+    tabsFrame.BorderSizePixel = 0
+    tabsFrame.ZIndex = 2
 
-    -- Khung Nội Dung Tab (Bên phải)
-    local contentFrame = Instance.new("Frame", mainFrame)
-    contentFrame.Size = UDim2.new(1, -175, 1, -20)
-    contentFrame.Position = UDim2.new(0, 165, 0, 10)
+    local tabsCorner = Instance.new("UICorner", tabsFrame)
+    tabsCorner.CornerRadius = UDim.new(0, 8)
+
+    local tabsStroke = Instance.new("UIStroke", tabsFrame)
+    tabsStroke.Color = Color3.fromRGB(0, 180, 220)
+    tabsStroke.Transparency = 0.5
+    tabsStroke.Thickness = 1
+
+    local tabsScroll = Instance.new("ScrollingFrame", tabsFrame)
+    tabsScroll.Size = UDim2.new(1, 0, 1, 0)
+    tabsScroll.BackgroundTransparency = 1
+    tabsScroll.BorderSizePixel = 0
+    tabsScroll.ScrollBarThickness = 2
+    tabsScroll.ZIndex = 3
+
+    local tabsLayout = Instance.new("UIListLayout", tabsScroll)
+    tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabsLayout.Padding = UDim.new(0, 6)
+
+    local tabsPadding = Instance.new("UIPadding", tabsScroll)
+    tabsPadding.PaddingTop = UDim.new(0, 8)
+    tabsPadding.PaddingLeft = UDim.new(0, 8)
+    tabsPadding.PaddingRight = UDim.new(0, 8)
+
+    -- Container nội dung bên phải
+    local contentFrame = Instance.new("Frame", frame)
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Position = UDim2.new(0, 152, 0, 45)
+    contentFrame.Size = UDim2.new(1, -164, 1, -57)
     contentFrame.BackgroundTransparency = 1
     contentFrame.ZIndex = 2
 
-    -- BẢNG CẤU HÌNH TAB
-    local tabsConfig = {
-        { name = "Main",        module = MainTabModule },
-        { name = "Kaitun",      module = KaitunTabModule },
-        { name = "Hop",         module = HopTabModule },
-        { name = "Other Games", module = OtherGamesTabModule },
-        { name = "Setting",     module = SettingTabModule },
-        { name = "Status",      module = StatusTabModule }
-    }
+    -- Nút Kéo Giãn GUI ở góc dưới bên phải
+    local resizeBtn = Instance.new("TextButton", frame)
+    resizeBtn.Name = "ResizeButton"
+    resizeBtn.Size = UDim2.new(0, 25, 0, 25)
+    resizeBtn.Position = UDim2.new(1, -25, 1, -25)
+    resizeBtn.Text = ""
+    resizeBtn.BackgroundTransparency = 1
+    resizeBtn.TextTransparency = 1
+    resizeBtn.ZIndex = 10
 
-    local activeTabBtn = nil
-    local activeTabFrame = nil
+    local isResizing = false
+    local startInputPos, startFrameSize
 
-    -- Khởi tạo nút bấm & khung hiển thị cho từng Tab
-    for index, tabData in ipairs(tabsConfig) do
-        local tabContainer = Instance.new("Frame", contentFrame)
-        tabContainer.Size = UDim2.new(1, 0, 1, 0)
-        tabContainer.BackgroundTransparency = 1
-        tabContainer.Visible = false
+    resizeBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isResizing = true
+            startInputPos = input.Position
+            startFrameSize = frame.AbsoluteSize
+            
+            frame.Draggable = false
 
-        if tabData.module and tabData.module.Create then
-            pcall(function()
-                tabData.module.Create(tabContainer)
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    isResizing = false
+                    frame.Draggable = true
+                end
             end)
         end
+    end)
 
-        local tabBtn = Instance.new("TextButton", navFrame)
-        tabBtn.Size = UDim2.new(1, 0, 0, 32)
-        tabBtn.Text = tabData.name
-        tabBtn.Font = Enum.Font.GothamSemibold
-        tabBtn.TextSize = 12
-        tabBtn.BorderSizePixel = 0
-        tabBtn.BackgroundColor3 = Color3.fromRGB(28, 37, 50)
-        tabBtn.TextColor3 = Color3.fromRGB(160, 180, 205)
+    UserInputService.InputChanged:Connect(function(input)
+        if isResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - startInputPos
+            local newWidth = math.max(450, startFrameSize.X + delta.X)
+            local newHeight = math.max(280, startFrameSize.Y + delta.Y)
+            
+            frame.Size = UDim2.new(0, newWidth, 0, newHeight)
+        end
+    end)
 
-        local btnCorner = Instance.new("UICorner", tabBtn)
-        btnCorner.CornerRadius = UDim.new(0, 6)
+    local currentTab = nil
 
-        local btnStroke = Instance.new("UIStroke", tabBtn)
-        btnStroke.Color = Color3.fromRGB(45, 60, 80)
-        btnStroke.Thickness = 1
-
-        tabBtn.MouseButton1Click:Connect(function()
-            if activeTabBtn then
-                activeTabBtn.BackgroundColor3 = Color3.fromRGB(28, 37, 50)
-                activeTabBtn.TextColor3 = Color3.fromRGB(160, 180, 205)
+    local function switchTab(tabModule)
+        if currentTab and typeof(currentTab) == "Instance" then
+            currentTab:Destroy()
+        end
+        for _, child in ipairs(contentFrame:GetChildren()) do
+            if child:IsA("GuiObject") then
+                child:Destroy()
             end
-            if activeTabFrame then
-                activeTabFrame.Visible = false
-            end
-
-            tabBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
-            tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            tabContainer.Visible = true
-
-            activeTabBtn = tabBtn
-            activeTabFrame = tabContainer
-
-            -- GỬI THÔNG BÁO KHI CHUYỂN TAB
-            if NotificationModule and NotificationModule.Notify then
-                pcall(function()
-                    NotificationModule.Notify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Đã chuyển sang Tab: " .. tabData.name, 2)
-                end)
-            end
-        end)
-
-        if index == 1 then
-            tabBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
-            tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            tabContainer.Visible = true
-            activeTabBtn = tabBtn
-            activeTabFrame = tabContainer
+        end
+        if tabModule and tabModule.Create then
+            pcall(function()
+                currentTab = tabModule.Create(contentFrame)
+            end)
         end
     end
 
-    -- THÔNG BÁO KHỞI TẠO HUB THÀNH CÔNG
-    if NotificationModule and NotificationModule.Notify then
+    -- Đầy đủ danh sách các Tab từ Repo
+    local tabsData = {
+        { Name = "Menu", Module = MenuTabModule },
+        { Name = "Kaitun", Module = KaitunTabModule },
+        { Name = "Hop", Module = HopTabModule },
+        { Name = "Other Games", Module = OtherGamesTabModule },
+        { Name = "Setting", Module = OtherTabModule },
+        { Name = "Status", Module = StatusTabModule }
+    }
+
+    local activeBtn = nil
+    for _, tab in ipairs(tabsData) do
+        local btn = Instance.new("TextButton", tabsScroll)
+        btn.Size = UDim2.new(1, 0, 0, 34)
+        btn.Text = tab.Name
+        btn.Font = Enum.Font.GothamSemibold
+        btn.TextSize = 12
+        btn.BackgroundColor3 = Color3.fromRGB(20, 30, 45)
+        btn.BackgroundTransparency = 0.3
+        btn.TextColor3 = Color3.fromRGB(200, 240, 255)
+        btn.BorderSizePixel = 0
+        btn.ZIndex = 4
+
+        local btnCorner = Instance.new("UICorner", btn)
+        btnCorner.CornerRadius = UDim.new(0, 6)
+
+        local btnStroke = Instance.new("UIStroke", btn)
+        btnStroke.Color = Color3.fromRGB(0, 200, 255)
+        btnStroke.Transparency = 0.6
+        btnStroke.Thickness = 1
+
+        btn.MouseButton1Click:Connect(function()
+            if activeBtn then
+                activeBtn.BackgroundColor3 = Color3.fromRGB(20, 30, 45)
+                activeBtn.TextColor3 = Color3.fromRGB(200, 240, 255)
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(0, 160, 220)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            activeBtn = btn
+
+            switchTab(tab.Module)
+        end)
+    end
+
+    openBtn.MouseButton1Click:Connect(function()
+        frame.Visible = not frame.Visible
+    end)
+
+    -- Khởi tạo mặc định sang Tab Menu
+    switchTab(MenuTabModule)
+
+    -- Gọi Notification thông báo tải thành công
+    local showNotify = NotificationModule.Show or NotificationModule.Notify
+    if showNotify then
         pcall(function()
-            NotificationModule.Notify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "loaded successful!", 4)
+            showNotify("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
         end)
     end
 end
