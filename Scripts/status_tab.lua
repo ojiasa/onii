@@ -58,7 +58,7 @@ function StatusTab.Create(parentFrame)
     -- 1. Card Thời Gian
     local timeLabel = createCard("TIME", "--:--:--")
     
-    -- 2. Card FPS
+    -- 2. Card FPS (FPS counter sửa lỗi)
     local fpsLabel = createCard("FPS", "-- FPS")
 
     -- 3. Card Discord
@@ -143,23 +143,64 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- Cập nhật Giờ (Chạy 1 giây/lần)
+    -- ========== CẬP NHẬT GIỜ (1 giây/lần) ==========
     task.spawn(function()
         while frame:IsDescendantOf(game) do
-            timeLabel.Text = os.date("%H:%M:%S")
+            pcall(function()
+                timeLabel.Text = os.date("%H:%M:%S")
+            end)
             task.wait(1)
         end
     end)
 
-    -- Cập nhật FPS mượt bằng API chính thức của Roblox
-    local renderConnection
-    renderConnection = RunService.RenderStepped:Connect(function()
-        if not frame:IsDescendantOf(game) then
-            renderConnection:Disconnect()
-            return
+    -- ========== CẬP NHẬT FPS (THROTTLED - 0.5 giây/lần) ==========
+    -- Phương pháp 1: Dùng workspace:GetRealtimeFPS() + throttle
+    task.spawn(function()
+        local lastUpdate = 0
+        local updateInterval = 0.5 -- Update mỗi 0.5 giây thay vì mỗi frame
+        
+        while frame:IsDescendantOf(game) do
+            local currentTime = tick()
+            if currentTime - lastUpdate >= updateInterval then
+                pcall(function()
+                    local fps = workspace:GetRealtimeFPS()
+                    fpsLabel.Text = math.floor(fps) .. " FPS"
+                end)
+                lastUpdate = currentTime
+            end
+            task.wait(0.05) -- Check mỗi 0.05 giây
         end
-        fpsLabel.Text = math.floor(workspace:GetRealtimeFPS()) .. " FPS"
     end)
+
+    -- Alternative: Nếu GetRealtimeFPS() không hoạt động, dùng phương pháp tính FPS thủ công
+    -- (Uncomment dòng dưới và comment phần trên nếu FPS vẫn không hiển thị)
+    --[[
+    task.spawn(function()
+        local frameCount = 0
+        local lastTime = tick()
+        
+        local renderConnection
+        renderConnection = RunService.RenderStepped:Connect(function()
+            if not frame:IsDescendantOf(game) then
+                renderConnection:Disconnect()
+                return
+            end
+            
+            frameCount = frameCount + 1
+            local currentTime = tick()
+            local deltaTime = currentTime - lastTime
+            
+            if deltaTime >= 1 then
+                pcall(function()
+                    local fps = math.floor(frameCount / deltaTime)
+                    fpsLabel.Text = fps .. " FPS"
+                end)
+                frameCount = 0
+                lastTime = currentTime
+            end
+        end)
+    end)
+    ]]--
 
     return frame
 end
