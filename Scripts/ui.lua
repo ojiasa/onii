@@ -1,11 +1,5 @@
 local UI = {}
 
--- Chống load trùng toàn bộ Hub
-local ENV = (getgenv and getgenv()) or _G
-if ENV.ShadowGladeLoaded then
-    return
-end
-ENV.ShadowGladeLoaded = true
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -135,17 +129,18 @@ local function showNotification(titleText, messageText, duration, iconId)
 end
 
 function UI.Init()
-    -- Không khởi tạo lần thứ hai trong cùng một module
+    -- Không tạo UI thứ hai nếu NanaHubUI đã tồn tại
+    -- Cách này không phụ thuộc getgenv/executor API.
+    local existingGui = TargetParent:FindFirstChild("NanaHubUI")
+    if existingGui then
+        UI.Gui = existingGui
+        return
+    end
+
     if UI._initialized then
         return
     end
     UI._initialized = true
-
-    -- Xóa GUI cũ nếu đã tồn tại
-    local oldGui = TargetParent:FindFirstChild("NanaHubUI")
-    if oldGui then
-        oldGui:Destroy()
-    end
 
     -- Tạo ScreenGui chính
     local gui = Instance.new("ScreenGui")
