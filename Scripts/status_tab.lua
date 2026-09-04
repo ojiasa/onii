@@ -1,12 +1,11 @@
 local StatusTab = {}
-local Stats = game:GetService("Stats")
 local RunService = game:GetService("RunService")
 
 -- ĐIỀN THÔNG TIN DISCORD CỦA BẠN VÀO ĐÂY:
 local DISCORD_LINK = "https://discord.gg/shadowglade"
-local DISCORD_NAME = "ＳＨＡＤＯＷ ＧＬＡＤＥ" -- Hoặc đổi tên server của bạn
+local DISCORD_NAME = "ＳＨＡＤＯＷ ＧＬＡＤＥ"
 local DISCORD_DESC = "Join my discord!!!"
-local DISCORD_ICON = "rbxassetid://100445460077624" -- ID ảnh bạn vừa cung cấp
+local DISCORD_ICON = "rbxassetid://100445460077624"
 
 function StatusTab.Create(parentFrame)
     local frame = Instance.new("Frame", parentFrame)
@@ -57,12 +56,12 @@ function StatusTab.Create(parentFrame)
     end
 
     -- 1. Card Thời Gian
-    local timeLabel = createCard("TIME", "00:00:00")
+    local timeLabel = createCard("TIME", "--:--:--")
     
     -- 2. Card FPS
-    local fpsLabel = createCard("FPS", "60 FPS")
+    local fpsLabel = createCard("FPS", "-- FPS")
 
-    -- 3. Card Discord phong cách Redz Hub (Có ảnh, tên server và nút Join)
+    -- 3. Card Discord
     local discordCard = Instance.new("Frame", frame)
     discordCard.Size = UDim2.new(1, -10, 0, 105)
     discordCard.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
@@ -77,7 +76,6 @@ function StatusTab.Create(parentFrame)
     cardStroke.Transparency = 0.3
     cardStroke.Thickness = 1
 
-    -- Link nhỏ ở góc trên
     local linkText = Instance.new("TextLabel", discordCard)
     linkText.Size = UDim2.new(1, -20, 0, 20)
     linkText.Position = UDim2.new(0, 12, 0, 6)
@@ -88,7 +86,6 @@ function StatusTab.Create(parentFrame)
     linkText.TextXAlignment = Enum.TextXAlignment.Left
     linkText.BackgroundTransparency = 1
 
-    -- Ảnh đại diện Server (Icon)
     local iconFrame = Instance.new("ImageLabel", discordCard)
     iconFrame.Size = UDim2.new(0, 38, 0, 38)
     iconFrame.Position = UDim2.new(0, 12, 0, 30)
@@ -100,7 +97,6 @@ function StatusTab.Create(parentFrame)
     local iconCorner = Instance.new("UICorner", iconFrame)
     iconCorner.CornerRadius = UDim.new(0, 6)
 
-    -- Tên Server
     local serverName = Instance.new("TextLabel", discordCard)
     serverName.Size = UDim2.new(1, -60, 0, 18)
     serverName.Position = UDim2.new(0, 58, 0, 28)
@@ -111,7 +107,6 @@ function StatusTab.Create(parentFrame)
     serverName.TextXAlignment = Enum.TextXAlignment.Left
     serverName.BackgroundTransparency = 1
 
-    -- Mô tả ngắn
     local serverDesc = Instance.new("TextLabel", discordCard)
     serverDesc.Size = UDim2.new(1, -60, 0, 24)
     serverDesc.Position = UDim2.new(0, 58, 0, 46)
@@ -124,7 +119,6 @@ function StatusTab.Create(parentFrame)
     serverDesc.TextWrapped = true
     serverDesc.BackgroundTransparency = 1
 
-    -- Nút JOIN màu xanh lá
     local joinBtn = Instance.new("TextButton", discordCard)
     joinBtn.Size = UDim2.new(1, -24, 0, 26)
     joinBtn.Position = UDim2.new(0, 12, 0, 73)
@@ -138,7 +132,6 @@ function StatusTab.Create(parentFrame)
     local btnCorner = Instance.new("UICorner", joinBtn)
     btnCorner.CornerRadius = UDim.new(0, 6)
 
-    -- Xử lý khi bấm nút Join (Copy link)
     joinBtn.MouseButton1Click:Connect(function()
         if setclipboard then
             setclipboard(DISCORD_LINK)
@@ -150,27 +143,22 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- Vòng lặp cập nhật Thời Gian & FPS liên tục
-    local lastUpdate = tick()
-    local frameCount = 0
+    -- Cập nhật Giờ (Chạy riêng 1 giây/lần để chống giật/đứng)
+    task.spawn(function()
+        while frame:IsDescendantOf(game) do
+            timeLabel.Text = os.date("%H:%M:%S")
+            task.wait(1)
+        end
+    end)
 
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
+    -- Cập nhật FPS (Sử dụng API chuẩn của Roblox workspace)
+    local renderConnection
+    renderConnection = RunService.RenderStepped:Connect(function()
         if not frame:IsDescendantOf(game) then
-            connection:Disconnect()
+            renderConnection:Disconnect()
             return
         end
-
-        -- Cập nhật Thời Gian
-        timeLabel.Text = os.date("%H:%M:%S")
-
-        -- Cập nhật FPS
-        frameCount = frameCount + 1
-        if tick() - lastUpdate >= 1 then
-            fpsLabel.Text = math.floor(frameCount / (tick() - lastUpdate)) .. " FPS"
-            frameCount = 0
-            lastUpdate = tick()
-        end
+        fpsLabel.Text = math.floor(workspace:GetRealtimeFPS()) .. " FPS"
     end)
 
     return frame
