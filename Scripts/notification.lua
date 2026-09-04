@@ -57,11 +57,11 @@ function StatusTab.Create(parentFrame)
 
     -- 1. Card Thời Gian
     local timeLabel = createCard("TIME", "00:00:00")
-    
+
     -- 2. Card FPS
     local fpsLabel = createCard("FPS", "60 FPS")
 
-    -- 3. Card Discord phong cách Redz Hub
+    -- 3. Card Discord
     local discordCard = Instance.new("Frame", frame)
     discordCard.Size = UDim2.new(1, -10, 0, 105)
     discordCard.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
@@ -149,29 +149,30 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- Thuật toán cập nhật Thời Gian & FPS chuẩn xác
+    -- Cập nhật Thời Gian & FPS bằng task.spawn và task.wait để tránh đè RenderStepped
     local frameCounter = 0
-    local timer = 0
+    local lastTick = tick()
 
     local connection
-    connection = RunService.RenderStepped:Connect(function(deltaTime)
+    connection = RunService.RenderStepped:Connect(function()
         if not frame:IsDescendantOf(game) then
-            connection:Disconnect()
+            if connection then connection:Disconnect() end
             return
         end
-
-        -- Cập nhật Thời Gian
-        timeLabel.Text = os.date("%H:%M:%S")
-
-        -- Cập nhật FPS chính xác
         frameCounter = frameCounter + 1
-        timer = timer + deltaTime
+    end)
 
-        if timer >= 1 then
-            local currentFps = math.floor(frameCounter / timer)
-            fpsLabel.Text = currentFps .. " FPS"
+    task.spawn(function()
+        while frame:IsDescendantOf(game) do
+            task.wait(1)
+            timeLabel.Text = os.date("%H:%M:%S")
+            
+            local now = tick()
+            local fps = math.floor(frameCounter / (now - lastTick))
+            fpsLabel.Text = tostring(fps) .. " FPS"
+            
             frameCounter = 0
-            timer = 0
+            lastTick = now
         end
     end)
 
