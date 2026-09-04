@@ -7,13 +7,17 @@ local LocalPlayer = Players.LocalPlayer
 -- URL Repository GitHub của bạn (emzymodios/anini)
 local BASE_URL = "https://raw.githubusercontent.com/emzymodios/anini/main/Scripts/"
 
--- 1. Load các Module Tab từ GitHub
-local MainTabModule       = loadstring(game:HttpGet(BASE_URL .. "menu_tab.lua"))()       -- Main (menu_tab.lua)
-local KaitunTabModule     = loadstring(game:HttpGet(BASE_URL .. "kaitun_tab.lua"))()     -- Kaitun
-local HopTabModule        = loadstring(game:HttpGet(BASE_URL .. "hop_tab.lua"))()        -- Hop
-local OtherGamesTabModule = loadstring(game:HttpGet(BASE_URL .. "other_games_tab.lua"))()-- Other Games
-local SettingTabModule    = loadstring(game:HttpGet(BASE_URL .. "other_tab.lua"))()      -- Setting (other_tab.lua)
-local StatusTabModule     = loadstring(game:HttpGet(BASE_URL .. "status_tab.lua"))()     -- Status
+-- 1. CẤU HÌNH HÌNH ẢNH (Thay ID ảnh Roblox của bạn vào đây)
+local BACKGROUND_IMAGE_ID = "rbxassetid://10967390919" -- ID ảnh nền Menu
+local LOGO_IMAGE_ID       = "rbxassetid://10967390919" -- ID ảnh Logo Anini Hub
+
+-- 2. Load các Module Tab từ GitHub
+local MainTabModule       = loadstring(game:HttpGet(BASE_URL .. "menu_tab.lua"))()
+local KaitunTabModule     = loadstring(game:HttpGet(BASE_URL .. "kaitun_tab.lua"))()
+local HopTabModule        = loadstring(game:HttpGet(BASE_URL .. "hop_tab.lua"))()
+local OtherGamesTabModule = loadstring(game:HttpGet(BASE_URL .. "other_games_tab.lua"))()
+local SettingTabModule    = loadstring(game:HttpGet(BASE_URL .. "other_tab.lua"))()
+local StatusTabModule     = loadstring(game:HttpGet(BASE_URL .. "status_tab.lua"))()
 
 function UI.Init()
     -- Xóa GUI cũ nếu đã tồn tại
@@ -36,6 +40,7 @@ function UI.Init()
     mainFrame.BorderSizePixel = 0
     mainFrame.Active = true
     mainFrame.Draggable = true
+    mainFrame.ClipsDescendants = true
 
     local mainCorner = Instance.new("UICorner", mainFrame)
     mainCorner.CornerRadius = UDim.new(0, 10)
@@ -44,32 +49,65 @@ function UI.Init()
     mainStroke.Color = Color3.fromRGB(0, 180, 255)
     mainStroke.Thickness = 1.5
 
+    -- ========================================================
+    -- 1. HÌNH NỀN MENU (BACKGROUND IMAGE)
+    -- ========================================================
+    local bgImage = Instance.new("ImageLabel", mainFrame)
+    bgImage.Name = "BackgroundImage"
+    bgImage.Size = UDim2.new(1, 0, 1, 0)
+    bgImage.Position = UDim2.new(0, 0, 0, 0)
+    bgImage.Image = BACKGROUND_IMAGE_ID
+    bgImage.ImageTransparency = 0.85 -- Độ trong suốt của ảnh nền (chỉnh từ 0 đến 1)
+    bgImage.ScaleType = Enum.ScaleType.Crop
+    bgImage.BackgroundTransparency = 1
+    bgImage.ZIndex = 1
+
     -- Sidebar chứa danh sách nút Tab (Bên trái)
     local sidebar = Instance.new("Frame", mainFrame)
     sidebar.Size = UDim2.new(0, 145, 1, -20)
     sidebar.Position = UDim2.new(0, 10, 0, 10)
     sidebar.BackgroundColor3 = Color3.fromRGB(22, 29, 40)
+    sidebar.BackgroundTransparency = 0.2
     sidebar.BorderSizePixel = 0
+    sidebar.ZIndex = 2
 
     local sidebarCorner = Instance.new("UICorner", sidebar)
     sidebarCorner.CornerRadius = UDim.new(0, 8)
 
-    local sidebarLayout = Instance.new("UIListLayout", sidebar)
+    -- ========================================================
+    -- 2. LOGO ANINI HUB TRÊN CÙNG SIDEBAR (LOGO IMAGE)
+    -- ========================================================
+    local logoImage = Instance.new("ImageLabel", sidebar)
+    logoImage.Name = "LogoImage"
+    logoImage.Size = UDim2.new(0, 42, 0, 42)
+    logoImage.Position = UDim2.new(0.5, -21, 0, 8)
+    logoImage.Image = LOGO_IMAGE_ID
+    logoImage.BackgroundTransparency = 1
+    logoImage.ScaleType = Enum.ScaleType.Fit
+    logoImage.ZIndex = 3
+
+    local logoCorner = Instance.new("UICorner", logoImage)
+    logoCorner.CornerRadius = UDim.new(0, 8)
+
+    -- Khung chứa danh sách nút Tab (Đặt dưới Logo)
+    local navFrame = Instance.new("Frame", sidebar)
+    navFrame.Size = UDim2.new(1, -12, 1, -58)
+    navFrame.Position = UDim2.new(0, 6, 0, 54)
+    navFrame.BackgroundTransparency = 1
+    navFrame.ZIndex = 3
+
+    local sidebarLayout = Instance.new("UIListLayout", navFrame)
     sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
     sidebarLayout.Padding = UDim.new(0, 5)
-
-    local sidebarPadding = Instance.new("UIPadding", sidebar)
-    sidebarPadding.PaddingTop = UDim.new(0, 8)
-    sidebarPadding.PaddingLeft = UDim.new(0, 6)
-    sidebarPadding.PaddingRight = UDim.new(0, 6)
 
     -- Khung Nội Dung Tab (Bên phải)
     local contentFrame = Instance.new("Frame", mainFrame)
     contentFrame.Size = UDim2.new(1, -175, 1, -20)
     contentFrame.Position = UDim2.new(0, 165, 0, 10)
     contentFrame.BackgroundTransparency = 1
+    contentFrame.ZIndex = 2
 
-    -- BẢNG CẤU HÌNH 6 TAB THEO ĐÚNG THỨ TỰ BẠN YÊU CẦU
+    -- BẢNG CẤU HÌNH 6 TAB
     local tabsConfig = {
         { name = "Main",        module = MainTabModule },
         { name = "Kaitun",      module = KaitunTabModule },
@@ -84,19 +122,16 @@ function UI.Init()
 
     -- Khởi tạo nút bấm & khung hiển thị cho từng Tab
     for index, tabData in ipairs(tabsConfig) do
-        -- Khung nội dung riêng cho từng Tab
         local tabContainer = Instance.new("Frame", contentFrame)
         tabContainer.Size = UDim2.new(1, 0, 1, 0)
         tabContainer.BackgroundTransparency = 1
         tabContainer.Visible = false
 
-        -- Nạp UI từ file module tương ứng
         if tabData.module and tabData.module.Create then
             tabData.module.Create(tabContainer)
         end
 
-        -- Nút bấm trên Sidebar
-        local tabBtn = Instance.new("TextButton", sidebar)
+        local tabBtn = Instance.new("TextButton", navFrame)
         tabBtn.Size = UDim2.new(1, 0, 0, 32)
         tabBtn.Text = tabData.name
         tabBtn.Font = Enum.Font.GothamSemibold
@@ -112,7 +147,6 @@ function UI.Init()
         btnStroke.Color = Color3.fromRGB(45, 60, 80)
         btnStroke.Thickness = 1
 
-        -- Chức năng chuyển Tab khi click
         tabBtn.MouseButton1Click:Connect(function()
             if activeTabBtn then
                 activeTabBtn.BackgroundColor3 = Color3.fromRGB(28, 37, 50)
@@ -130,7 +164,6 @@ function UI.Init()
             activeTabFrame = tabContainer
         end)
 
-        -- Mặc định chọn Tab đầu tiên (Main)
         if index == 1 then
             tabBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
             tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
