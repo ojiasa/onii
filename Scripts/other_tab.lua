@@ -9,7 +9,7 @@ local LocalPlayer = Players.LocalPlayer
 local SpeedEnabled = false
 local NoclipEnabled = false
 local InfJumpEnabled = false
-local CurrentSpeed = 50 -- Tốc độ mặc định khi bật Speed
+local CurrentSpeed = 50 -- Tốc độ mặc định
 
 function OtherTab.Create(parentFrame)
     local scroll = Instance.new("ScrollingFrame", parentFrame)
@@ -23,49 +23,7 @@ function OtherTab.Create(parentFrame)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 8)
 
-    -- Hàm tạo nút Toggle chuyển màu Xanh Nước
-    local function createToggle(nameText, defaultState, callback)
-        local btn = Instance.new("TextButton", scroll)
-        btn.Size = UDim2.new(1, -10, 0, 42)
-        btn.Font = Enum.Font.GothamSemibold
-        btn.TextSize = 13
-        btn.BorderSizePixel = 0
-        btn.ZIndex = 3
-
-        local stroke = Instance.new("UIStroke", btn)
-        stroke.Thickness = 1
-
-        local corner = Instance.new("UICorner", btn)
-        corner.CornerRadius = UDim.new(0, 8)
-
-        local isToggled = defaultState
-
-        local function updateVisual()
-            if isToggled then
-                btn.Text = nameText .. " [ ON ]"
-                btn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
-                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                stroke.Color = Color3.fromRGB(0, 220, 255)
-            else
-                btn.Text = nameText .. " [ OFF ]"
-                btn.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
-                btn.TextColor3 = Color3.fromRGB(180, 200, 220)
-                stroke.Color = Color3.fromRGB(50, 70, 95)
-            end
-        end
-
-        updateVisual()
-
-        btn.MouseButton1Click:Connect(function()
-            isToggled = not isToggled
-            updateVisual()
-            callback(isToggled)
-        end)
-
-        return btn
-    end
-
-    -- Hàm tạo Thanh Kéo Tốc Độ (Slider) phong cách Nana Hub
+    -- 1. Hàm tạo Thanh Kéo (Slider) ĐƯỢC ĐẶT LÊN TRÊN
     local function createSlider(titleText, minVal, maxVal, defaultVal, callback)
         local frame = Instance.new("Frame", scroll)
         frame.Size = UDim2.new(1, -10, 0, 50)
@@ -137,7 +95,56 @@ function OtherTab.Create(parentFrame)
         end)
     end
 
-    -- 1. Toggle SPEED
+    -- 2. Hàm tạo nút Toggle
+    local function createToggle(nameText, defaultState, callback)
+        local btn = Instance.new("TextButton", scroll)
+        btn.Size = UDim2.new(1, -10, 0, 42)
+        btn.Font = Enum.Font.GothamSemibold
+        btn.TextSize = 13
+        btn.BorderSizePixel = 0
+        btn.ZIndex = 3
+
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Thickness = 1
+
+        local corner = Instance.new("UICorner", btn)
+        corner.CornerRadius = UDim.new(0, 8)
+
+        local isToggled = defaultState
+
+        local function updateVisual()
+            if isToggled then
+                btn.Text = nameText .. " [ ON ]"
+                btn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                stroke.Color = Color3.fromRGB(0, 220, 255)
+            else
+                btn.Text = nameText .. " [ OFF ]"
+                btn.BackgroundColor3 = Color3.fromRGB(20, 28, 40)
+                btn.TextColor3 = Color3.fromRGB(180, 200, 220)
+                stroke.Color = Color3.fromRGB(50, 70, 95)
+            end
+        end
+
+        updateVisual()
+
+        btn.MouseButton1Click:Connect(function()
+            isToggled = not isToggled
+            updateVisual()
+            callback(isToggled)
+        end)
+
+        return btn
+    end
+
+    -- ===== TẠO GIAO DIỆN THEO THỨ TỰ =====
+
+    -- 1. Thanh Kéo Tốc Độ (Nằm ở TRÊN CÙNG)
+    createSlider("Speed Value", 16, 500, CurrentSpeed, function(value)
+        CurrentSpeed = value
+    end)
+
+    -- 2. Nút Bật/Tắt Speed (Nằm Ở DƯỚI Thanh Kéo)
     createToggle("Speed (Fast Walk)", SpeedEnabled, function(state)
         SpeedEnabled = state
         if not SpeedEnabled then
@@ -145,11 +152,6 @@ function OtherTab.Create(parentFrame)
                 LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
             end
         end
-    end)
-
-    -- 2. Thanh Kéo Tốc Độ (Đã đổi Max = 500)
-    createSlider("Speed Value", 16, 500, CurrentSpeed, function(value)
-        CurrentSpeed = value
     end)
 
     -- 3. Toggle NOCLIP
@@ -162,7 +164,7 @@ function OtherTab.Create(parentFrame)
         InfJumpEnabled = state
     end)
 
-    -- Vòng lặp Xử Lý Speed & Noclip
+    -- ===== VÒNG LẶP XỬ LÝ CHỨC NĂNG =====
     local renderConnection
     renderConnection = RunService.Stepped:Connect(function()
         if not scroll:IsDescendantOf(game) then
@@ -172,13 +174,20 @@ function OtherTab.Create(parentFrame)
 
         local character = LocalPlayer.Character
         if character then
-            -- Áp dụng tốc độ từ thanh kéo khi bật Speed
             local humanoid = character:FindFirstChildOfClass("Humanoid")
-            if humanoid and SpeedEnabled then
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+
+            -- Xử lý Speed (Cập nhật liên tục WalkSpeed + CTP bypass)
+            if SpeedEnabled and humanoid and hrp then
                 humanoid.WalkSpeed = CurrentSpeed
+                
+                -- Nếu game chặn WalkSpeed, sử dụng CFrame Velocity ép nhân vật chạy
+                if humanoid.MoveDirection.Magnitude > 0 then
+                    hrp.CFrame = hrp.CFrame + (humanoid.MoveDirection * (CurrentSpeed / 100))
+                end
             end
 
-            -- Áp dụng Noclip
+            -- Xử lý Noclip
             if NoclipEnabled then
                 for _, part in ipairs(character:GetDescendants()) do
                     if part:IsA("BasePart") and part.CanCollide then
@@ -189,7 +198,7 @@ function OtherTab.Create(parentFrame)
         end
     end)
 
-    -- Xử lý Infinite Jump (Phím Space / Mobile Jump)
+    -- Xử lý Infinite Jump
     local jumpConnection
     jumpConnection = UserInputService.JumpRequest:Connect(function()
         if not scroll:IsDescendantOf(game) then
