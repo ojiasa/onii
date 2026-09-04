@@ -1,4 +1,11 @@
 local UI = {}
+
+-- Chống load trùng toàn bộ Hub
+local ENV = (getgenv and getgenv()) or _G
+if ENV.ShadowGladeLoaded then
+    return
+end
+ENV.ShadowGladeLoaded = true
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -51,18 +58,8 @@ local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
 local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
 
--- Biến chặn chống gọi thông báo trùng lặp trong thời gian ngắn
-local lastNotifTime = 0
-
 -- Hàm hiển thị thông báo trực tiếp (Chống trùng lặp 100%)
 local function showNotification(titleText, messageText, duration, iconId)
-    local currentTime = os.clock()
-    -- Nếu thông báo vừa gọi chưa quá 0.5s thì bỏ qua thông báo bị lặp
-    if currentTime - lastNotifTime < 0.5 then
-        return
-    end
-    lastNotifTime = currentTime
-
     local gui = TargetParent:FindFirstChild("NanaHubUI")
     if not gui then return end
 
@@ -76,13 +73,6 @@ local function showNotification(titleText, messageText, duration, iconId)
         container.BackgroundTransparency = 1
         container.ZIndex = 9999
 
-        local layout = Instance.new("UIListLayout", container)
-        layout.SortOrder = Enum.SortOrder.LayoutOrder
-        layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-        layout.Padding = UDim.new(0, 8)
-    else
-        -- Xóa thông báo cũ đang hiển thị để tránh bị chồng đống 2 cái giống nhau
-        container:ClearAllChildren()
         local layout = Instance.new("UIListLayout", container)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
@@ -145,6 +135,12 @@ local function showNotification(titleText, messageText, duration, iconId)
 end
 
 function UI.Init()
+    -- Không khởi tạo lần thứ hai trong cùng một module
+    if UI._initialized then
+        return
+    end
+    UI._initialized = true
+
     -- Xóa GUI cũ nếu đã tồn tại
     local oldGui = TargetParent:FindFirstChild("NanaHubUI")
     if oldGui then
@@ -156,6 +152,7 @@ function UI.Init()
     gui.Name = "NanaHubUI"
     gui.Parent = TargetParent
     gui.ResetOnSpawn = false
+    UI.Gui = gui
 
     -- 1. NÚT ICON TRÒN MỞ/TẮT UI
     local openBtn = Instance.new("ImageButton", gui)
@@ -382,12 +379,11 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-   -- Bật thông báo, chống gọi trùng
-if not gui:GetAttribute("NotificationShown") then
-    gui:SetAttribute("NotificationShown", true)
-
+    -- Thông báo khởi động: chỉ tạo đúng 1 lần cho GUI này
     task.defer(function()
-        if gui and gui.Parent then
+        if gui and gui.Parent and not gui:GetAttribute("StartupNotificationShown") then
+            gui:SetAttribute("StartupNotificationShown", true)
+
             showNotification(
                 "ＳＨＡＤＯＷ ＧＬＡＤＥ",
                 "Giao diện đã tải thành công!",
@@ -396,7 +392,6 @@ if not gui:GetAttribute("NotificationShown") then
             )
         end
     end)
-end
-    
+
 UI.Init()
 return UI
