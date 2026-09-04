@@ -5,6 +5,22 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- Tìm Parent phù hợp cho GUI (CoreGui nếu có quyền, nếu không sẽ dùng PlayerGui)
+local function getGuiParent()
+    local success, _ = pcall(function()
+        local test = Instance.new("Folder")
+        test.Parent = CoreGui
+        test:Destroy()
+    end)
+    if success then
+        return CoreGui
+    else
+        return LocalPlayer:WaitForChild("PlayerGui")
+    end
+end
+
+local TargetParent = getGuiParent()
+
 -- URL Repository GitHub chuẩn
 local BASE_URL = "https://raw.githubusercontent.com/ojiasa/onii/refs/heads/main/Scripts/"
 
@@ -28,7 +44,6 @@ local function safeLoad(url)
 end
 
 -- Nạp các module từ GitHub
-local NotificationModule  = safeLoad(BASE_URL .. "notification.lua")
 local MenuTabModule       = safeLoad(BASE_URL .. "menu_tab.lua")
 local KaitunTabModule     = safeLoad(BASE_URL .. "kaitun_tab.lua")
 local HopTabModule        = safeLoad(BASE_URL .. "hop_tab.lua")
@@ -36,18 +51,33 @@ local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
 local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
 
--- Hàm thông báo dự phòng (khi module từ GitHub bị lỗi)
-local function fallbackNotify(titleText, messageText, duration, iconId)
-    local parentGui = CoreGui:FindFirstChild("NanaHubUI") or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("NanaHubUI")
-    if not parentGui then return end
+-- Hàm hiển thị thông báo trực tiếp (Độc lập & Chống lỗi 100%)
+local function showNotification(titleText, messageText, duration, iconId)
+    local gui = TargetParent:FindFirstChild("NanaHubUI")
+    if not gui then return end
 
-    local notifFrame = Instance.new("Frame", parentGui)
-    notifFrame.Size = UDim2.new(0, 260, 0, 60)
-    notifFrame.Position = UDim2.new(1, 10, 1, -80)
+    -- Container chứa thông báo (Tự động sắp xếp nếu có nhiều thông báo)
+    local container = gui:FindFirstChild("NotifContainer")
+    if not container then
+        container = Instance.new("Frame", gui)
+        container.Name = "NotifContainer"
+        container.Size = UDim2.new(0, 280, 1, -20)
+        container.Position = UDim2.new(1, -290, 0, 10)
+        container.BackgroundTransparency = 1
+        container.ZIndex = 9999
+
+        local layout = Instance.new("UIListLayout", container)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        layout.Padding = UDim.new(0, 8)
+    end
+
+    local notifFrame = Instance.new("Frame", container)
+    notifFrame.Size = UDim2.new(1, 0, 0, 60)
     notifFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
     notifFrame.BackgroundTransparency = 0.15
     notifFrame.BorderSizePixel = 0
-    notifFrame.ZIndex = 200
+    notifFrame.ZIndex = 10000
 
     local corner = Instance.new("UICorner", notifFrame)
     corner.CornerRadius = UDim.new(0, 8)
@@ -57,29 +87,29 @@ local function fallbackNotify(titleText, messageText, duration, iconId)
     stroke.Thickness = 1.5
 
     local img = Instance.new("ImageLabel", notifFrame)
-    img.Size = UDim2.new(0, 38, 0, 38)
-    img.Position = UDim2.new(0, 10, 0, 11)
+    img.Size = UDim2.new(0, 36, 0, 36)
+    img.Position = UDim2.new(0, 10, 0.5, -18)
     img.BackgroundTransparency = 1
     img.Image = iconId or Config.IconImageId
-    img.ZIndex = 201
+    img.ZIndex = 10001
 
     local imgCorner = Instance.new("UICorner", img)
     imgCorner.CornerRadius = UDim.new(0, 6)
 
     local tLabel = Instance.new("TextLabel", notifFrame)
-    tLabel.Size = UDim2.new(1, -60, 0, 20)
-    tLabel.Position = UDim2.new(0, 55, 0, 8)
+    tLabel.Size = UDim2.new(1, -55, 0, 20)
+    tLabel.Position = UDim2.new(0, 52, 0, 8)
     tLabel.Text = titleText
     tLabel.Font = Enum.Font.GothamBold
     tLabel.TextSize = 13
     tLabel.TextColor3 = Color3.fromRGB(0, 255, 230)
     tLabel.TextXAlignment = Enum.TextXAlignment.Left
     tLabel.BackgroundTransparency = 1
-    tLabel.ZIndex = 201
+    tLabel.ZIndex = 10001
 
     local mLabel = Instance.new("TextLabel", notifFrame)
-    mLabel.Size = UDim2.new(1, -60, 0, 25)
-    mLabel.Position = UDim2.new(0, 55, 0, 28)
+    mLabel.Size = UDim2.new(1, -55, 0, 26)
+    mLabel.Position = UDim2.new(0, 52, 0, 28)
     mLabel.Text = messageText
     mLabel.Font = Enum.Font.Gotham
     mLabel.TextSize = 11
@@ -87,22 +117,19 @@ local function fallbackNotify(titleText, messageText, duration, iconId)
     mLabel.TextXAlignment = Enum.TextXAlignment.Left
     mLabel.TextWrapped = true
     mLabel.BackgroundTransparency = 1
-    mLabel.ZIndex = 201
+    mLabel.ZIndex = 10001
 
-    -- Trượt thông báo vào
-    notifFrame:TweenPosition(UDim2.new(1, -270, 1, -80), "Out", "Quad", 0.4, true)
-
-    -- Tự động ẩn sau khoảng thời gian duration
+    -- Tự động biến mất
     task.delay(duration or 3, function()
-        notifFrame:TweenPosition(UDim2.new(1, 10, 1, -80), "In", "Quad", 0.4, true, function()
+        if notifFrame and notifFrame.Parent then
             notifFrame:Destroy()
-        end)
+        end
     end)
 end
 
 function UI.Init()
     -- Xóa GUI cũ nếu đã tồn tại
-    local oldGui = CoreGui:FindFirstChild("NanaHubUI") or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("NanaHubUI")
+    local oldGui = TargetParent:FindFirstChild("NanaHubUI")
     if oldGui then
         oldGui:Destroy()
     end
@@ -110,7 +137,7 @@ function UI.Init()
     -- Tạo ScreenGui chính
     local gui = Instance.new("ScreenGui")
     gui.Name = "NanaHubUI"
-    gui.Parent = CoreGui
+    gui.Parent = TargetParent
     gui.ResetOnSpawn = false
 
     -- 1. NÚT ICON TRÒN MỞ/TẮT UI
@@ -338,38 +365,9 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Xử lý hiển thị Notification đa phương thức và chống lỗi tuyệt đối
-    task.spawn(function()
-        local title = "ＳＨＡＤＯＷ ＧＬＡＤＥ"
-        local message = "Giao diện đã tải thành công!"
-        local duration = 3
-        local icon = Config.IconImageId
-
-        local success = false
-        if NotificationModule then
-            pcall(function()
-                if type(NotificationModule) == "table" then
-                    if type(NotificationModule.Show) == "function" then
-                        NotificationModule.Show(title, message, duration, icon)
-                        success = true
-                    elseif type(NotificationModule.Notify) == "function" then
-                        NotificationModule.Notify(title, message, duration, icon)
-                        success = true
-                    elseif type(NotificationModule.Create) == "function" then
-                        NotificationModule.Create(title, message, duration, icon)
-                        success = true
-                    end
-                elseif type(NotificationModule) == "function" then
-                    NotificationModule(title, message, duration, icon)
-                    success = true
-                end
-            end)
-        end
-
-        -- Nếu module từ GitHub trả về lỗi hoặc không chạy, gọi thông báo dự phòng
-        if not success then
-            fallbackNotify(title, message, duration, icon)
-        end
+    -- Bật thông báo
+    task.defer(function()
+        showNotification("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 4, Config.IconImageId)
     end)
 end
 
