@@ -19,11 +19,11 @@ local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
-    if success and (type(result) == "table" or type(result) == "userdata" or type(result) == "function") then
+    if success and result then
         return result
     else
         warn("[Shadow Glade] Lỗi nạp module từ URL: " .. tostring(url))
-        return { Create = function(parent) end, Show = function() end }
+        return nil
     end
 end
 
@@ -35,6 +35,70 @@ local HopTabModule        = safeLoad(BASE_URL .. "hop_tab.lua")
 local OtherGamesTabModule = safeLoad(BASE_URL .. "other_games_tab.lua")
 local OtherTabModule      = safeLoad(BASE_URL .. "other_tab.lua")
 local StatusTabModule     = safeLoad(BASE_URL .. "status_tab.lua")
+
+-- Hàm thông báo dự phòng (khi module từ GitHub bị lỗi)
+local function fallbackNotify(titleText, messageText, duration, iconId)
+    local parentGui = CoreGui:FindFirstChild("NanaHubUI") or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("NanaHubUI")
+    if not parentGui then return end
+
+    local notifFrame = Instance.new("Frame", parentGui)
+    notifFrame.Size = UDim2.new(0, 260, 0, 60)
+    notifFrame.Position = UDim2.new(1, 10, 1, -80)
+    notifFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
+    notifFrame.BackgroundTransparency = 0.15
+    notifFrame.BorderSizePixel = 0
+    notifFrame.ZIndex = 200
+
+    local corner = Instance.new("UICorner", notifFrame)
+    corner.CornerRadius = UDim.new(0, 8)
+
+    local stroke = Instance.new("UIStroke", notifFrame)
+    stroke.Color = Color3.fromRGB(0, 255, 220)
+    stroke.Thickness = 1.5
+
+    local img = Instance.new("ImageLabel", notifFrame)
+    img.Size = UDim2.new(0, 38, 0, 38)
+    img.Position = UDim2.new(0, 10, 0, 11)
+    img.BackgroundTransparency = 1
+    img.Image = iconId or Config.IconImageId
+    img.ZIndex = 201
+
+    local imgCorner = Instance.new("UICorner", img)
+    imgCorner.CornerRadius = UDim.new(0, 6)
+
+    local tLabel = Instance.new("TextLabel", notifFrame)
+    tLabel.Size = UDim2.new(1, -60, 0, 20)
+    tLabel.Position = UDim2.new(0, 55, 0, 8)
+    tLabel.Text = titleText
+    tLabel.Font = Enum.Font.GothamBold
+    tLabel.TextSize = 13
+    tLabel.TextColor3 = Color3.fromRGB(0, 255, 230)
+    tLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tLabel.BackgroundTransparency = 1
+    tLabel.ZIndex = 201
+
+    local mLabel = Instance.new("TextLabel", notifFrame)
+    mLabel.Size = UDim2.new(1, -60, 0, 25)
+    mLabel.Position = UDim2.new(0, 55, 0, 28)
+    mLabel.Text = messageText
+    mLabel.Font = Enum.Font.Gotham
+    mLabel.TextSize = 11
+    mLabel.TextColor3 = Color3.fromRGB(220, 240, 255)
+    mLabel.TextXAlignment = Enum.TextXAlignment.Left
+    mLabel.TextWrapped = true
+    mLabel.BackgroundTransparency = 1
+    mLabel.ZIndex = 201
+
+    -- Trượt thông báo vào
+    notifFrame:TweenPosition(UDim2.new(1, -270, 1, -80), "Out", "Quad", 0.4, true)
+
+    -- Tự động ẩn sau khoảng thời gian duration
+    task.delay(duration or 3, function()
+        notifFrame:TweenPosition(UDim2.new(1, 10, 1, -80), "In", "Quad", 0.4, true, function()
+            notifFrame:Destroy()
+        end)
+    end)
+end
 
 function UI.Init()
     -- Xóa GUI cũ nếu đã tồn tại
@@ -49,7 +113,7 @@ function UI.Init()
     gui.Parent = CoreGui
     gui.ResetOnSpawn = false
 
-    -- 1. NÚT ICON TRÒN MỞ/TẮT UI (Được đặt ZIndex = 100 để luôn nằm ở lớp trên cùng)
+    -- 1. NÚT ICON TRÒN MỞ/TẮT UI
     local openBtn = Instance.new("ImageButton", gui)
     openBtn.Name = "OpenButton"
     openBtn.Size = UDim2.new(0, 50, 0, 50)
@@ -274,12 +338,37 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Gọi Notification thông báo
-    pcall(function()
-        if type(NotificationModule) == "table" and NotificationModule.Show then
-            NotificationModule.Show("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
-        elseif type(NotificationModule) == "function" then
-            NotificationModule("ＳＨＡＤＯＷ ＧＬＡＤＥ", "Giao diện đã tải thành công!", 3, Config.IconImageId)
+    -- Xử lý hiển thị Notification đa phương thức và chống lỗi tuyệt đối
+    task.spawn(function()
+        local title = "ＳＨＡＤＯＷ ＧＬＡＤＥ"
+        local message = "Giao diện đã tải thành công!"
+        local duration = 3
+        local icon = Config.IconImageId
+
+        local success = false
+        if NotificationModule then
+            pcall(function()
+                if type(NotificationModule) == "table" then
+                    if type(NotificationModule.Show) == "function" then
+                        NotificationModule.Show(title, message, duration, icon)
+                        success = true
+                    elseif type(NotificationModule.Notify) == "function" then
+                        NotificationModule.Notify(title, message, duration, icon)
+                        success = true
+                    elseif type(NotificationModule.Create) == "function" then
+                        NotificationModule.Create(title, message, duration, icon)
+                        success = true
+                    end
+                elseif type(NotificationModule) == "function" then
+                    NotificationModule(title, message, duration, icon)
+                    success = true
+                end
+            end)
+        end
+
+        -- Nếu module từ GitHub trả về lỗi hoặc không chạy, gọi thông báo dự phòng
+        if not success then
+            fallbackNotify(title, message, duration, icon)
         end
     end)
 end
