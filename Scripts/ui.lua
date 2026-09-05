@@ -422,7 +422,7 @@ function UI.Init()
             if gui and gui.Parent then
                 showNotification(
                     "ＳＨＡＤＯＷ ＧＬＡＤＥ",
-                    "Giao diện đã tải thành công!",
+                    "mày thích hack không ban ngay!",
                     4,
                     Config.IconImageId
                 )
