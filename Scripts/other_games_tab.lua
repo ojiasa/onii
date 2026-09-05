@@ -1,26 +1,56 @@
 local OtherGamesTab = {}
 
--- BẢNG DANH SÁCH GAME HỖ TRỢ (Bạn tự do thêm/sửa game ở đây)
+-- BẢNG DANH SÁCH GAME HỖ TRỢ MỚI
 local SupportedGames = {
     {
-        name = "Blox Fruits",
-        scriptName = "Hoho Hub",
-        url = "https://raw.githubusercontent.com/acsu123/HOHO_HUB/main/Loading_v3.lua"
+        name = "Steal an Egg",
+        scriptName = "ZK Hub (No Key)",
+        url = "https://zkcommunity.cloud/loader-test.lua"
     },
     {
-        name = "King Legacy",
-        scriptName = "Redz Hub",
-        url = "https://raw.githubusercontent.com/REDZHUB/REDZHUB/main/REDZHUB.lua"
+        name = "Jump for Animals",
+        scriptName = "Ouroboros Hub (No Key)",
+        url = "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"
     },
     {
-        name = "Blade Ball",
-        scriptName = "ThunderZ Hub",
-        url = "https://raw.githubusercontent.com/AhmadStudio/ThunderZ/main/Main.lua"
+        name = "Dungeon Lootr",
+        scriptName = "Blobby Hub (No Key)",
+        url = "https://raw.githubusercontent.com/Someone636/blobbyhub/refs/heads/main/DLR.luau"
     },
     {
-        name = "Pet Simulator 99",
-        scriptName = "Zap Hub",
-        url = "https://raw.githubusercontent.com/ZapHub/Loader/main/ZapHub.lua"
+        name = "Attack on Titan Revolution",
+        scriptName = "Lunarz Hub (No Key)",
+        url = "https://raw.githubusercontent.com/LunarZR/bomba/refs/heads/main/AOTR1"
+    },
+    {
+        name = "Anime Ability Arena",
+        scriptName = "Chaos Hub (No Key)",
+        url = "https://pastebin.com/raw/vL29cvTP"
+    },
+    {
+        name = "Heroes Battlegrounds",
+        scriptName = "Academic Hub (No Key)",
+        url = "https://raw.githubusercontent.com/solarastuff/hbg/refs/heads/main/academic.lua"
+    },
+    {
+        name = "FIFA Super Soccer",
+        scriptName = "Vector Hub (No Key)",
+        url = "https://rscripts.net/raw/fifa-super-soccer-script-v2-or-vector-hub_1787226570472_TgECvXzJk2.txt"
+    },
+    {
+        name = "Sell Ores",
+        scriptName = "Ouroboros Hub (No Key)",
+        url = "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"
+    },
+    {
+        name = "+1 Web Swing Escape",
+        scriptName = "Vertec Hub (No Key)",
+        url = "https://raw.githubusercontent.com/usevertec/robloxscripts/refs/heads/main/scripts/webswingescape.lua"
+    },
+    {
+        name = "Dungeon Quest Reborn",
+        scriptName = "Luarmor Script",
+        url = "https://api.luarmor.net/files/v4/loaders/810ead9e4a1c88d0780889c0db72d9b2.lua"
     }
 }
 
@@ -48,7 +78,7 @@ function OtherGamesTab.Create(parentFrame)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.BackgroundTransparency = 1
 
-    -- Đường gạch ngang trang trí bên dưới tiêu đề
+    -- Đường gạch ngang trang trí
     local line = Instance.new("Frame", mainFrame)
     line.Size = UDim2.new(1, -10, 0, 1)
     line.Position = UDim2.new(0, 0, 0, 30)
@@ -65,13 +95,16 @@ function OtherGamesTab.Create(parentFrame)
     scroll.ScrollBarThickness = 4
     scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 180, 255)
 
+    -- CẤU HÌNH TỰ ĐỘNG CÂN BẰNG CHIỀU CAO KHUNG CUỘN
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
     local layout = Instance.new("UIListLayout", scroll)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 10)
 
-    -- 3. TẠO CÁC Ô VUÔNG TỪNG GAME (XANH NƯỚC BIỂN)
+    -- 3. TẠO CÁC Ô VUÔNG TỪNG GAME
     for _, item in ipairs(SupportedGames) do
-        -- Ô vuông viền xanh nước biển
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, -10, 0, 52)
         card.BackgroundColor3 = Color3.fromRGB(18, 26, 38)
@@ -82,7 +115,7 @@ function OtherGamesTab.Create(parentFrame)
         cardCorner.CornerRadius = UDim.new(0, 8)
 
         local cardStroke = Instance.new("UIStroke", card)
-        cardStroke.Color = Color3.fromRGB(0, 180, 255) -- Viền xanh nước
+        cardStroke.Color = Color3.fromRGB(0, 180, 255)
         cardStroke.Transparency = 0.3
         cardStroke.Thickness = 1.2
 
@@ -111,7 +144,7 @@ function OtherGamesTab.Create(parentFrame)
         local runBtn = Instance.new("TextButton", card)
         runBtn.Size = UDim2.new(0, 85, 0, 32)
         runBtn.Position = UDim2.new(1, -95, 0, 10)
-        runBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 220) -- Ô vuông xanh nước
+        runBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 220)
         runBtn.Text = "Execute"
         runBtn.Font = Enum.Font.GothamBold
         runBtn.TextSize = 11
