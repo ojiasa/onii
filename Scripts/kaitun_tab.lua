@@ -4,7 +4,7 @@ local KaitunTab = {}
 local KaitunScripts = {
     {
         name = "Kaitun Blox Fruit",
-        desc = "Teddy Hub",
+        desc = "Teddy Hub (no key)",
         url = "https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub-kaitunBF.lua"
     },
     {
