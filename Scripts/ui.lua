@@ -86,7 +86,7 @@ local function showNotification(titleText, messageText, duration, iconId)
     local gui = TargetParent:FindFirstChild("NanaHubUI")
     if not gui then return end
 
-    -- Container chứa thông báo (Tự động sắp xếp nếu có nhiều thông báo)
+    -- Container chứa thông báo
     local container = gui:FindFirstChild("NotifContainer")
     if not container then
         container = Instance.new("Frame", gui)
@@ -149,7 +149,6 @@ local function showNotification(titleText, messageText, duration, iconId)
     mLabel.BackgroundTransparency = 1
     mLabel.ZIndex = 10001
 
-    -- Tự động biến mất
     task.delay(duration or 3, function()
         if notifFrame and notifFrame.Parent then
             notifFrame:Destroy()
@@ -261,9 +260,9 @@ function UI.Init()
     tabsScroll.BorderSizePixel = 0
     tabsScroll.ScrollBarThickness = 3
     tabsScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
-    tabsScroll.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar -- ✅ THÊM
-    tabsScroll.ScrollingDirection = Enum.ScrollingDirection.Y -- ✅ THÊM
-    tabsScroll.CanvasSize = UDim2.new(0, 0, 1, 0) -- ✅ SET DEFAULT = 1.0 (không scroll)
+    tabsScroll.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+    tabsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    tabsScroll.CanvasSize = UDim2.new(0, 0, 1, 0)
     tabsScroll.ZIndex = 3
 
     local tabsLayout = Instance.new("UIListLayout", tabsScroll)
@@ -275,19 +274,14 @@ function UI.Init()
     tabsPadding.PaddingLeft = UDim.new(0, 8)
     tabsPadding.PaddingRight = UDim.new(0, 8)
     
-    -- ✅ THÊM: CanvasSize thông minh - chỉ scroll khi tabs vượt quá frame
     tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        task.wait() -- ✅ THÊM: Delay để AbsoluteSize tính toán xong
-        
+        task.wait()
         local contentHeight = tabsLayout.AbsoluteContentSize.Y
         local scrollHeight = tabsScroll.AbsoluteSize.Y
         
-        -- Nếu content lớn hơn scroll frame → tạo canvas để scroll
-        -- Nếu content vừa vặn → không tạo canvas, đứng yên
         if contentHeight > scrollHeight and scrollHeight > 0 then
             tabsScroll.CanvasSize = UDim2.new(0, 0, 0, contentHeight + 16)
         else
-            -- Reset canvas size để không scroll nếu content vừa vặn
             tabsScroll.CanvasSize = UDim2.new(0, 0, 1, 0)
         end
     end)
@@ -362,14 +356,14 @@ function UI.Init()
         end
     end
 
-    -- Danh sách Tab
+    -- Danh sách Tab (Status đã được chuyển lên ĐẦU TÊN)
     local tabsData = {
+        { Name = "Status", Module = StatusTabModule },
         { Name = "Menu", Module = MenuTabModule },
         { Name = "Kaitun", Module = KaitunTabModule },
         { Name = "Hop", Module = HopTabModule },
         { Name = "Other Games", Module = OtherGamesTabModule },
-        { Name = "Setting", Module = OtherTabModule },
-        { Name = "Status", Module = StatusTabModule }
+        { Name = "Setting", Module = OtherTabModule }
     }
 
     local activeBtn = nil
@@ -417,8 +411,8 @@ function UI.Init()
         frame.Visible = not frame.Visible
     end)
 
-    -- Khởi tạo mặc định sang Tab Menu
-    switchTab(MenuTabModule)
+    -- Khởi tạo mặc định mở Tab Status
+    switchTab(StatusTabModule)
 
     -- Bật thông báo, chống gọi trùng
     if not gui:GetAttribute("NotificationShown") then
