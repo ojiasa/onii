@@ -4,8 +4,13 @@ local OtherGamesTab = {}
 local SupportedGames = {
     {
         name = "Steal an Egg",
-        scriptName = "ZK Hub (No Key)",
-        url = "https://zkcommunity.cloud/loader-test.lua"
+        scriptName = "VALINC HUB (No Key)",
+        url = "https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"
+    },
+    {
+        name = "Steal an Egg",
+        scriptName = "CLOVER HUB (No Key)",
+        url = "https://raw.githubusercontent.com/Ryuun0x/Clover/refs/heads/main/main.lua"
     },
     {
         name = "Jump for Animals",
