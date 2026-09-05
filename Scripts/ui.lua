@@ -1,12 +1,11 @@
 local UI = {}
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Tìm Parent phù hợp cho GUI
+-- Tìm Parent phù hợp cho GUI (CoreGui nếu có quyền, nếu không sẽ dùng PlayerGui)
 local function getGuiParent()
     local success, _ = pcall(function()
         local test = Instance.new("Folder")
@@ -31,17 +30,15 @@ local Config = {
     BackgroundImageId = "rbxassetid://116222439691339"
 }
 
--- Hàm hỗ trợ nạp module an toàn + VERBOSE LOGGING
+-- Hàm hỗ trợ nạp module an toàn
 local function safeLoad(url)
-    print("[Shadow Glade] Đang nạp: " .. url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
     if success and result then
-        print("[Shadow Glade] ✓ Thành công: " .. url)
         return result
     else
-        warn("[Shadow Glade] ✗ LỖI nạp: " .. url)
+        warn("[Shadow Glade] Lỗi nạp module từ URL: " .. tostring(url))
         return nil
     end
 end
@@ -84,15 +81,12 @@ OtherGamesTabModule = OtherGamesTabModule or createDummyTab("Other Games")
 OtherTabModule = OtherTabModule or createDummyTab("Setting")
 StatusTabModule = StatusTabModule or createDummyTab("Status")
 
--- Hàm hiển thị thông báo trực tiếp
+-- Hàm hiển thị thông báo trực tiếp (Độc lập & Chống lỗi 100%)
 local function showNotification(titleText, messageText, duration, iconId)
     local gui = TargetParent:FindFirstChild("NanaHubUI")
-    if not gui then 
-        warn("[Shadow Glade] GUI không tìm thấy, không thể hiển thị notification")
-        return 
-    end
+    if not gui then return end
 
-    -- Container chứa thông báo
+    -- Container chứa thông báo (Tự động sắp xếp nếu có nhiều thông báo)
     local container = gui:FindFirstChild("NotifContainer")
     if not container then
         container = Instance.new("Frame", gui)
@@ -164,29 +158,17 @@ local function showNotification(titleText, messageText, duration, iconId)
 end
 
 function UI.Init()
-    print("[Shadow Glade] Đang khởi tạo UI...")
-    
-    -- Không tạo UI thứ hai nếu NanaHubUI đã tồn tại
-    local existingGui = TargetParent:FindFirstChild("NanaHubUI")
-    if existingGui then
-        print("[Shadow Glade] UI đã tồn tại, sử dụng UI cũ")
-        UI.Gui = existingGui
-        return
+    -- Xóa GUI cũ nếu đã tồn tại
+    local oldGui = TargetParent:FindFirstChild("NanaHubUI")
+    if oldGui then
+        oldGui:Destroy()
     end
-
-    if UI._initialized then
-        return
-    end
-    UI._initialized = true
 
     -- Tạo ScreenGui chính
     local gui = Instance.new("ScreenGui")
     gui.Name = "NanaHubUI"
     gui.Parent = TargetParent
     gui.ResetOnSpawn = false
-    UI.Gui = gui
-    
-    print("[Shadow Glade] ScreenGui được tạo thành công")
 
     -- 1. NÚT ICON TRÒN MỞ/TẮT UI
     local openBtn = Instance.new("ImageButton", gui)
@@ -277,7 +259,8 @@ function UI.Init()
     tabsScroll.Size = UDim2.new(1, 0, 1, 0)
     tabsScroll.BackgroundTransparency = 1
     tabsScroll.BorderSizePixel = 0
-    tabsScroll.ScrollBarThickness = 2
+    tabsScroll.ScrollBarThickness = 3
+    tabsScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255) -- Scrollbar xanh nước sáng hơn
     tabsScroll.ZIndex = 3
 
     local tabsLayout = Instance.new("UIListLayout", tabsScroll)
@@ -288,6 +271,8 @@ function UI.Init()
     tabsPadding.PaddingTop = UDim.new(0, 8)
     tabsPadding.PaddingLeft = UDim.new(0, 8)
     tabsPadding.PaddingRight = UDim.new(0, 8)
+    -- ❌ KHÔNG thêm PaddingBottom - để UIListLayout tự động calculate
+    -- Kết quả: Nếu tabs fit hết → không scroll, nếu vượt → mới scroll
 
     -- Container nội dung bên phải
     local contentFrame = Instance.new("Frame", frame)
@@ -352,7 +337,6 @@ function UI.Init()
                 end)
             end
         end
-        
         if tabModule and tabModule.Create then
             pcall(function()
                 currentTab = tabModule.Create(contentFrame)
@@ -418,22 +402,21 @@ function UI.Init()
     -- Khởi tạo mặc định sang Tab Menu
     switchTab(MenuTabModule)
 
-    -- Thông báo khởi động
-    task.defer(function()
-        if gui and gui.Parent and not gui:GetAttribute("StartupNotificationShown") then
-            gui:SetAttribute("StartupNotificationShown", true)
-            
-            print("[Shadow Glade] Showing startup notification")
-            showNotification(
-                "ＳＨＡＤＯＷ ＧＬＡＤＥ",
-                "Giao diện đã tải thành công!",
-                4,
-                Config.IconImageId
-            )
-        end
-    end)
-    
-    print("[Shadow Glade] UI init hoàn tất!")
+    -- Bật thông báo, chống gọi trùng
+    if not gui:GetAttribute("NotificationShown") then
+        gui:SetAttribute("NotificationShown", true)
+
+        task.defer(function()
+            if gui and gui.Parent then
+                showNotification(
+                    "ＳＨＡＤＯＷ ＧＬＡＤＥ",
+                    "siuuuuuuuuuuuuuuuuu!",
+                    4,
+                    Config.IconImageId
+                )
+            end
+        end)
+    end
 end
 
 UI.Init()
