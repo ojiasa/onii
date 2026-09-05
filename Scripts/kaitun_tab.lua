@@ -5,13 +5,11 @@ local KaitunScripts = {
     {
         name = "Kaitun Blox Fruit",
         desc = "Teddy Hub",
-        -- Script 1: Truyền link trực tiếp
         url = "https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub-kaitunBF.lua"
     },
     {
         name = "Kaitun Blox fruit",
         desc = "Trau hub",
-        -- Script 2: Truyền một hàm thực thi cấu hình + loadstring
         exec = function()
             getgenv().Configs = {
                 ["Quest"] = {
@@ -46,10 +44,8 @@ local KaitunScripts = {
 local function executeScript(scriptInfo)
     task.spawn(function()
         if scriptInfo.exec then
-            -- Nếu có hàm custom exec thì thực thi hàm đó
             scriptInfo.exec()
         elseif scriptInfo.url and scriptInfo.url ~= "" then
-            -- Nếu chỉ có URL thì tải link bình thường
             loadstring(game:HttpGet(scriptInfo.url))()
         end
     end)
@@ -68,6 +64,10 @@ function KaitunTab.Create(parentFrame)
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 4
     scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 220)
+    
+    -- CẤU HÌNH TỰ ĐỘNG KHỚP KÍCH THƯỚC NỘI DUNG
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     local layout = Instance.new("UIListLayout", scroll)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -132,7 +132,6 @@ function KaitunTab.Create(parentFrame)
             runBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 200)
             runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             
-            -- Gọi hàm xử lý chạy script linh hoạt
             executeScript(scriptInfo)
             
             task.wait(1.2)
