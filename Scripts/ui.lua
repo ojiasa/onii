@@ -260,7 +260,10 @@ function UI.Init()
     tabsScroll.BackgroundTransparency = 1
     tabsScroll.BorderSizePixel = 0
     tabsScroll.ScrollBarThickness = 3
-    tabsScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255) -- Scrollbar xanh nước sáng hơn
+    tabsScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
+    tabsScroll.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar -- ✅ THÊM
+    tabsScroll.ScrollingDirection = Enum.ScrollingDirection.Y -- ✅ THÊM
+    tabsScroll.CanvasSize = UDim2.new(0, 0, 1, 0) -- ✅ SET DEFAULT = 1.0 (không scroll)
     tabsScroll.ZIndex = 3
 
     local tabsLayout = Instance.new("UIListLayout", tabsScroll)
@@ -274,6 +277,8 @@ function UI.Init()
     
     -- ✅ THÊM: CanvasSize thông minh - chỉ scroll khi tabs vượt quá frame
     tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        task.wait() -- ✅ THÊM: Delay để AbsoluteSize tính toán xong
+        
         local contentHeight = tabsLayout.AbsoluteContentSize.Y
         local scrollHeight = tabsScroll.AbsoluteSize.Y
         
