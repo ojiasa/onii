@@ -34,7 +34,7 @@ function KaitunTab.Create(parentFrame)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 4
-    scroll.ScrollBarImageColor3 = Color3.fromRGB(150, 50, 220)
+    scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 220) -- Xanh nước
 
     local layout = Instance.new("UIListLayout", scroll)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -51,8 +51,8 @@ function KaitunTab.Create(parentFrame)
         cardCorner.CornerRadius = UDim.new(0, 8)
 
         local cardStroke = Instance.new("UIStroke", card)
-        cardStroke.Color = Color3.fromRGB(150, 50, 220) -- Viền tím
-        cardStroke.Thickness = 1
+        cardStroke.Color = Color3.fromRGB(0, 255, 220) -- Viền xanh nước
+        cardStroke.Thickness = 1.5
 
         -- Tên Script (Bên trái)
         local sName = Instance.new("TextLabel", card)
@@ -80,29 +80,36 @@ function KaitunTab.Create(parentFrame)
         local runBtn = Instance.new("TextButton", card)
         runBtn.Size = UDim2.new(0, 90, 0, 34)
         runBtn.Position = UDim2.new(1, -102, 0, 12)
-        runBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 220)
+        runBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 220) -- Nút xanh nước
         runBtn.Text = "Run Script"
         runBtn.Font = Enum.Font.GothamBold
         runBtn.TextSize = 11
-        runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        runBtn.TextColor3 = Color3.fromRGB(15, 20, 30) -- Text màu tối để dễ đọc
         runBtn.BorderSizePixel = 0
 
         local btnCorner = Instance.new("UICorner", runBtn)
         btnCorner.CornerRadius = UDim.new(0, 6)
 
+        local btnStroke = Instance.new("UIStroke", runBtn)
+        btnStroke.Color = Color3.fromRGB(0, 200, 200) -- Viền nút xanh nước đậm hơn
+        btnStroke.Thickness = 1
+
         runBtn.MouseButton1Click:Connect(function()
             runBtn.Text = "Executing..."
-            runBtn.BackgroundColor3 = Color3.fromRGB(50, 40, 70)
+            runBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 200) -- Xanh nước đậm khi executing
+            runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             
             loadScript(scriptInfo.url)
             
             task.wait(1.2)
-            runBtn.Text = "Active"
-            runBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
+            runBtn.Text = "Active ✓"
+            runBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 200) -- Xanh nước sáng hơn khi active
+            runBtn.TextColor3 = Color3.fromRGB(15, 20, 30)
             
             task.wait(1.5)
             runBtn.Text = "Run Script"
-            runBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 220)
+            runBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 220)
+            runBtn.TextColor3 = Color3.fromRGB(15, 20, 30)
         end)
     end
 
