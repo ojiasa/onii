@@ -271,8 +271,21 @@ function UI.Init()
     tabsPadding.PaddingTop = UDim.new(0, 8)
     tabsPadding.PaddingLeft = UDim.new(0, 8)
     tabsPadding.PaddingRight = UDim.new(0, 8)
-    -- ❌ KHÔNG thêm PaddingBottom - để UIListLayout tự động calculate
-    -- Kết quả: Nếu tabs fit hết → không scroll, nếu vượt → mới scroll
+    
+    -- ✅ THÊM: CanvasSize thông minh - chỉ scroll khi tabs vượt quá frame
+    tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        local contentHeight = tabsLayout.AbsoluteContentSize.Y
+        local scrollHeight = tabsScroll.AbsoluteSize.Y
+        
+        -- Nếu content lớn hơn scroll frame → tạo canvas để scroll
+        -- Nếu content vừa vặn → không tạo canvas, đứng yên
+        if contentHeight > scrollHeight and scrollHeight > 0 then
+            tabsScroll.CanvasSize = UDim2.new(0, 0, 0, contentHeight + 16)
+        else
+            -- Reset canvas size để không scroll nếu content vừa vặn
+            tabsScroll.CanvasSize = UDim2.new(0, 0, 1, 0)
+        end
+    end)
 
     -- Container nội dung bên phải
     local contentFrame = Instance.new("Frame", frame)
@@ -410,7 +423,7 @@ function UI.Init()
             if gui and gui.Parent then
                 showNotification(
                     "ＳＨＡＤＯＷ ＧＬＡＤＥ",
-                    "siuuuuuuuuuuuuuuuuu!",
+                    "Giao diện đã tải thành công!",
                     4,
                     Config.IconImageId
                 )
