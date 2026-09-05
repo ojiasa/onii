@@ -58,8 +58,8 @@ function StatusTab.Create(parentFrame)
     -- 1. Card Thời Gian
     local timeLabel = createCard("TIME", "--:--:--")
     
-    -- 2. Card FPS (FPS counter sửa lỗi)
-    local fpsLabel = createCard("FPS", "-- FPS")
+    -- 2. Card FPS
+    local fpsLabel = createCard("FPS", "0 FPS")
 
     -- 3. Card Discord
     local discordCard = Instance.new("Frame", frame)
@@ -153,36 +153,19 @@ function StatusTab.Create(parentFrame)
         end
     end)
 
-    -- ========== CẬP NHẬT FPS (THROTTLED - 0.5 giây/lần) ==========
-    -- Phương pháp 1: Dùng workspace:GetRealtimeFPS() + throttle
-    task.spawn(function()
-        local lastUpdate = 0
-        local updateInterval = 0.5 -- Update mỗi 0.5 giây thay vì mỗi frame
-        
-        while frame:IsDescendantOf(game) do
-            local currentTime = tick()
-            if currentTime - lastUpdate >= updateInterval then
-                pcall(function()
-                    local fps = workspace:GetRealtimeFPS()
-                    fpsLabel.Text = math.floor(fps) .. " FPS"
-                end)
-                lastUpdate = currentTime
-            end
-            task.wait(0.05) -- Check mỗi 0.05 giây
-        end
-    end)
-
-    -- Alternative: Nếu GetRealtimeFPS() không hoạt động, dùng phương pháp tính FPS thủ công
-    -- (Uncomment dòng dưới và comment phần trên nếu FPS vẫn không hiển thị)
-    --[[
+    -- ========== CẬP NHẬT FPS (PHƯƠNG PHÁP TÍNH THỦ CÔNG) ==========
+    -- Cách này hoạt động trên tất cả executor, khắc phục lỗi "-- FPS"
     task.spawn(function()
         local frameCount = 0
         local lastTime = tick()
+        local currentFPS = 0
         
         local renderConnection
         renderConnection = RunService.RenderStepped:Connect(function()
             if not frame:IsDescendantOf(game) then
-                renderConnection:Disconnect()
+                if renderConnection then
+                    renderConnection:Disconnect()
+                end
                 return
             end
             
@@ -190,17 +173,17 @@ function StatusTab.Create(parentFrame)
             local currentTime = tick()
             local deltaTime = currentTime - lastTime
             
-            if deltaTime >= 1 then
+            -- Cập nhật FPS mỗi 0.5 giây
+            if deltaTime >= 0.5 then
                 pcall(function()
-                    local fps = math.floor(frameCount / deltaTime)
-                    fpsLabel.Text = fps .. " FPS"
+                    currentFPS = math.floor(frameCount / deltaTime)
+                    fpsLabel.Text = currentFPS .. " FPS"
                 end)
                 frameCount = 0
                 lastTime = currentTime
             end
         end)
     end)
-    ]]--
 
     return frame
 end
