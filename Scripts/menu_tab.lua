@@ -16,7 +16,7 @@ local Scripts = {
             loadstring(game:HttpGet("https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub.lua"))()
         end 
     },
-    { name = "HOHO HUB", url = "https://raw.githubusercontent.com/acsu123/HOHO_H/main/Loading_UI" },
+    { name = "HOHO HUB", url = "https://raw.githubusercontent.com/acsu123/HOHO_H/main/loader.lua" },
 
     -- ==========================================
     -- 2. CÁC SCRIPT NO KEY (Ở DƯỚI)
@@ -30,7 +30,7 @@ local Scripts = {
             loadstring(game:HttpGet("https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub.lua"))()
         end 
     },
-    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Koko/script.luau" },
+    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/xlaby/Script/main/KokoHub.lua" },
     { name = "NERO HUB", url = "https://raw.githubusercontent.com/NeroHubClub/AutoMythicFruitFinder/refs/heads/main/NeroHubFruitFinder" }
 }
 
@@ -48,7 +48,6 @@ function MenuTab.Create(parentFrame)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     
-    -- Cấu hình hiển thị rõ Thanh Cuộn Xanh Nước Biển
     scroll.ScrollBarThickness = 6
     scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 180, 255)
     scroll.ScrollBarImageTransparency = 0
@@ -59,7 +58,6 @@ function MenuTab.Create(parentFrame)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 8)
 
-    -- Tự động tính toán độ dài Canvas khi thêm script
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 15)
     end)
@@ -81,7 +79,6 @@ function MenuTab.Create(parentFrame)
         local corner = Instance.new("UICorner", btn)
         corner.CornerRadius = UDim.new(0, 8)
 
-        -- Tên Hub ở ĐẦU DÒNG (Bên trái)
         local titleLabel = Instance.new("TextLabel", btn)
         titleLabel.Size = UDim2.new(0.8, -10, 1, 0)
         titleLabel.Position = UDim2.new(0, 15, 0, 0)
@@ -93,7 +90,6 @@ function MenuTab.Create(parentFrame)
         titleLabel.BackgroundTransparency = 1
         titleLabel.ZIndex = 4
 
-        -- Ký tự > ở CUỐI DÒNG (Bên phải)
         local arrowLabel = Instance.new("TextLabel", btn)
         arrowLabel.Size = UDim2.new(0.2, 0, 1, 0)
         arrowLabel.Position = UDim2.new(0.8, -15, 0, 0)
@@ -114,3 +110,4 @@ function MenuTab.Create(parentFrame)
 end
 
 return MenuTab
+
