@@ -9,13 +9,7 @@ local Scripts = {
     { name = "SPEED HUB X", url = "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua" },
     { name = "REAL HUB", url = "https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua" },
     { name = "TRẨU HUB", url = "https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua" },
-    { 
-        name = "TEDDY HUB", 
-        customRun = function()
-            repeat task.wait() until game:IsLoaded() and game:GetService("Players") and game.Players.LocalPlayer and game.Players.LocalPlayer:FindFirstChild("PlayerGui")
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub.lua"))()
-        end 
-    },
+
 
     -- ==========================================
     -- 2. CÁC SCRIPT NO KEY (Ở DƯỚI)
