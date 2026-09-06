@@ -9,7 +9,8 @@ local Scripts = {
     { name = "SPEED HUB X", url = "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua" },
     { name = "REAL HUB", url = "https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua" },
     { name = "TRẨU HUB", url = "https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua" },
-
+    { name = "NERO HUB", url = "https://raw.githubusercontent.com/NeroHubClub/AutoMythicFruitFinder/refs/heads/main/NeroHubFruitFinder" },
+    { name = "HOHO HUB", url = "https://raw.githubusercontent.com/acsu123/HOHO_H/main/Loading_UI" },
 
     -- ==========================================
     -- 2. CÁC SCRIPT NO KEY (Ở DƯỚI)
@@ -23,8 +24,7 @@ local Scripts = {
             loadstring(game:HttpGet("https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub.lua"))()
         end 
     },
-    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/xlaby/Script/main/KokoHub.lua" },
-    { name = "NERO HUB", url = "https://raw.githubusercontent.com/NeroHubClub/AutoMythicFruitFinder/refs/heads/main/NeroHubFruitFinder" }
+    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/xlaby/Script/main/KokoHub.lua" }
 }
 
 local function loadScript(s)
