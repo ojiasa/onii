@@ -24,7 +24,7 @@ local Scripts = {
             loadstring(game:HttpGet("https://raw.githubusercontent.com/teddyhubdev/diepvy/refs/heads/main/TeddyHub.lua"))()
         end 
     },
-    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/xlaby/Script/main/KokoHub.lua" }
+    { name = "KOKO HUB (NO KEY)", url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Koko/script.luau" }
 }
 
 local function loadScript(s)
