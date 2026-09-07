@@ -16,7 +16,7 @@ local Scripts = {
     -- 2. CÁC SCRIPT NO KEY (Ở DƯỚI)
     -- ==========================================
     { name = "REDZ V2 (NO KEY)", url = "https://raw.githubusercontent.com/UCT-hub/main/refs/heads/main/redz-v2" },
-    { name = "QUANTUM HUB (NO KEY)", url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua" },
+    { name = "QUANTUM HUB", url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua" },
     { 
         name = "TEDDY HUB (NO KEY)", 
         customRun = function()
